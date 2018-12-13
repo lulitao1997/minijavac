@@ -1,7 +1,3 @@
-project(simple_wc_example CXX)
-
-cmake_minimum_required(VERSION 3.1)
-
 find_package(BISON REQUIRED)
 find_package(FLEX REQUIRED)
 
@@ -17,6 +13,12 @@ add_executable(parser_exe
     parser_exe.cpp
     # driver.cpp
 
+    ${FLEX_yy_scanner_OUTPUTS}
+    ${BISON_yy_parser_OUTPUTS}
+)
+
+add_executable(lexer_exe
+    lexer_exe.cpp
     ${FLEX_yy_scanner_OUTPUTS}
     ${BISON_yy_parser_OUTPUTS}
 )

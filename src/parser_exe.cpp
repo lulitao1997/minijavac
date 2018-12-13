@@ -1,5 +1,6 @@
 #include "parser.hxx"
 #include <scanner.hpp>
+#include <ast/printer.hpp>
 #include <parser_output.hpp>
 #include <iostream>
 #include <sstream>
@@ -8,19 +9,15 @@
 using namespace std;
 
 int main() {
-    string parser_input = "123 + 567 + 7\n";
+    // string parser_input = "123.length + 456[2[0]] < 78 + !asdf.fun(1, 2, 3) * true\n";
+    string parser_input = "if (true) System.out.println(123); else {}";
 
     ParserOutput out;
     auto in = istringstream(parser_input);
     yy::scanner s(&in);
-    // while (s.yylex()) ;
-    int tktype = 0;
-    yy::parser::location_type yylloc;
-    while (tktype = s.yylex(new yy::parser::semantic_type, &yylloc)) {
-        cout << tktype << ", " << yylloc << endl;
-        if (!tktype) break;
-    }
-    // yy::parser p(s, out);
-    // int result = p.parse();
-    std::cout << out.result << std::endl;
+
+    yy::parser p(s, out);
+    auto *pr = new ast::Printer(cerr);
+    cerr << "Parse state: " << p.parse() << endl;
+    out.result->accept(pr);
 }

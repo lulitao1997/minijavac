@@ -21,6 +21,9 @@ using tk = yy::parser::token; // less verbose
 VAR_CHARSET [a-zA-Z0-9_]
 WHITESPACE [ \f\r\t\v]
 
+%x STR_QUOTE
+%x STR_ERROR
+
 %%
 
 %{
@@ -32,13 +35,36 @@ WHITESPACE [ \f\r\t\v]
 \n { yylloc->lines(); }
 
 [0-9]+ {
-    // std::cerr << "lexer meet an int: " << atoi(yytext) << std::endl;
     yylval->emplace<int>(atoi(yytext));
-    return tk::INTEGER;
+    return tk::INT_CONST;
+}
+
+"true" {
+    yylval->emplace<bool>(true);
+    return tk::BOOL_CONST;
+}
+
+"false" {
+    yylval->emplace<bool>(false);
+    return tk::BOOL_CONST;
+}
+
+"&&" { return tk::AND; }
+"new int" { return tk::NEWINT; }
+".length" { return tk::DOTLENGTH; }
+
+
+"if" { return tk::IF; }
+"else" { return tk::ELSE; }
+"while" { return tk::WHILE; }
+"System.out.println" { return tk::PRINTLN; }
+
+[_a-z]{VAR_CHARSET}+ {
+    yylval->emplace<std::string>(yytext);
+    return tk::OBJECTID;
 }
 
 . {
-    // std::cerr << "fuck fuck" << yytext << std::endl;
     return yytext[0];
 }
 
@@ -47,3 +73,7 @@ WHITESPACE [ \f\r\t\v]
 yy::scanner::scanner(std::istream *in, std::ostream *out)
         : yyFlexLexer(in, out)
 {}
+
+// void report_error(const std::string& error_msg) {
+//     yylval->emplace<std::string>(error_msg);
+// }

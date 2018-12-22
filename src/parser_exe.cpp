@@ -20,7 +20,7 @@ int main() {
     yy::scanner s(&in);
 
     yy::parser p(s, out);
-    auto *pr = new ast::Printer(cerr);
+    auto *pr = new ast::Printer(cout);
     cerr << "Parse state: " << p.parse() << endl;
     // out.result->accept(pr);
     for (auto c: out.result) {

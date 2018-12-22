@@ -59,7 +59,7 @@
 // %type <ast::Statement*> program
 %type<std::vector<ast::Class*>> program
 %type <std::vector<ast::Expression*>> non_empty_param_list param_list
-%type <std::vector<ast::Statement*>> stmt_list
+%type <std::vector<ast::Statement*>> stmt_list // non_empty_stmt_list
 %type <ast::Statement*> stmt
 
 %token <std::string> OBJECTID
@@ -72,6 +72,8 @@
 
 // class
 %token CLASS EXTENDS PUBLIC RETURN STATIC VOID MAIN
+%token INT
+
 %type <std::vector<ast::Class*>> class_decl_list
 %type <ast::Class*> main_class class_decl
 %type <std::string> type_
@@ -85,6 +87,7 @@
 // $precedence ELSE
 
 %right '='
+
 %left '!'
 
 %nonassoc '<'
@@ -92,7 +95,8 @@
 %left AND
 %left '+' '-'
 %left '*' '/'
-%left '.' '['
+%left '.'
+%precedence '['
 
 %%
 
@@ -131,12 +135,16 @@ expr
   | '(' expr[e] ')' { $$ = new Uop{Bracket, $e}; }
   ;
 
+// non_empty_stmt_list
+
 stmt_list
-  : %empty { $$ = vector<Statement*>{}; }
+  // : %empty { $$ = vector<Statement*>{}; }
+  : stmt[s] { $$ = single($s); }
   | stmt_list[sl] stmt[s] { $$ = append($sl, $s); }
 
 stmt
   : '{' stmt_list[sl] '}'  { $$ = new Block{$sl}; }
+  | '{' '}'  { $$ = new Block{vector<Statement*>{}}; }
   | IF '(' expr[e] ')' stmt[s1] ELSE stmt[s2] { $$ = new If{$e, $s1, $s2}; }
   | WHILE '(' expr[e] ')' stmt[s] { $$ = new While{$e, $s}; }
   | PRINTLN '(' expr[e] ')' ';' { $$ = new Println{$e}; }
@@ -173,6 +181,11 @@ method_decl
       RETURN expr[e] ';'
     '}'
     { $$ = new Method($t, $o, $pl, $vl, $sl, $e); }
+  | PUBLIC type_[t] OBJECTID[o] '(' param_decl_list[pl] ')' '{'
+      var_decl_list[vl]
+      RETURN expr[e] ';'
+    '}'
+    { $$ = new Method($t, $o, $pl, $vl, vector<Statement*>{}, $e); }
 
 method_decl_list
   : %empty { $$ = vector<Method*>{}; }

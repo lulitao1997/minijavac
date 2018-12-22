@@ -119,6 +119,10 @@ struct Printer: public Visitor {
         depth++;
         for (auto p: s->pl)
             out << idnt_str << "param: " << p.first << ", " << p.second << std::endl;
+        for (auto p: s->vl)
+            out << idnt_str << "var_decl: " << p.first << ", " << p.second << std::endl;
+        for (auto p: s->sl)
+            p->accept(this);
         depth--;
     }
 

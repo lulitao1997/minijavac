@@ -66,7 +66,9 @@ WHITESPACE [ \f\r\t\v]
 "static" { return tk::STATIC; }
 "void" { return tk::VOID; }
 "main" { return tk::MAIN; }
+
  /*
+"int" { returnt tk::INT; }
 "String" { return tk::M_STRING; }
  */
 

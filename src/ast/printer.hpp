@@ -26,7 +26,7 @@ struct Printer: public Visitor {
     PConst(BoolConst);
 
     void visit(Bop *o) {
-        out << idnt_str << "bop: " << (char)o->op << std::endl;
+        out << idnt_str << "bop: " << (char)o->op << "||||" << o->loc << std::endl;
         depth++;
         o->l->accept(this);
         o->r->accept(this);

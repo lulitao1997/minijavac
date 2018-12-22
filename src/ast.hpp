@@ -3,6 +3,11 @@
 
 #include <vector>
 #include <string>
+#include "location.hh"
+
+namespace yy {
+    extern location cur_loc;
+}
 
 namespace ast {
 
@@ -24,7 +29,6 @@ struct Assign;
 struct ArrAssign;
 
 struct Class;
-// struct Var;
 struct Method;
 
 struct Visitor {
@@ -50,8 +54,12 @@ struct Visitor {
     V0(Method);
     #undef V0
 };
+
+
 struct Node {
+    Node(): loc(yy::cur_loc) {}
     virtual void accept(Visitor *v) = 0;
+    yy::location loc;
 };
 
 template<typename Tp>
@@ -64,8 +72,6 @@ std::vector<Tp> single(Tp v) {
     return std::vector<Tp>{v};
 }
 
-
-typedef Expression *expr_ptr;
 typedef std::pair<std::string, std::string> ParamDecl;
 }
 

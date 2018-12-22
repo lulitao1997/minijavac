@@ -45,6 +45,21 @@
     using std::string;
 
 
+    #include "location.hh"
+    namespace yy {
+      location cur_loc;
+    }
+
+    #define YYLLOC_DEFAULT(Cur, Rhs, N) \
+    do { \
+      if (N) \
+        (Cur) = YYRHSLOC(Rhs, 1); \
+      else \
+        (Cur) = YYRHSLOC(Rhs, 0); \
+      cur_loc = (Cur); \
+    } while(0)
+
+
     #ifdef  yylex
     # undef yylex
     #endif

@@ -5,6 +5,7 @@
 #include <string>
 #include "expression.hpp"
 #include "statement.hpp"
+#include "program.hpp"
 
 namespace ast {
 
@@ -86,7 +87,44 @@ struct Printer: public Visitor {
         s->e->accept(this);
         depth--;
     }
+    void visit(ArrAssign *s) {
+        out << idnt_str << "Assign: " << std::endl;
+        depth++;
+        out << idnt_str << s->id << std::endl;
+        s->idx->accept(this);
+        s->e->accept(this);
+        depth--;
+    }
+    void visit(Assign *s) {
+        out << idnt_str << "Assign: " << std::endl;
+        depth++;
+        out << idnt_str << s->id << std::endl;
+        s->e->accept(this);
+        depth--;
+    }
 
+    /////// class /////////
+    void visit(Class *s) {
+        out << idnt_str << "Class: " << s->id << " extends: " << s->parent << std::endl;
+        depth++;
+        for (auto a: s->attrs)
+            out << idnt_str << "attrs: " << a.first << " : " << a.second << std::endl;
+        for (Method *a: s->methods)
+            a->accept(this);
+        depth--;
+    }
+
+    void visit(Method *s) {
+        out << idnt_str << "Method: " << s->id << " : " << s->type << std::endl;
+        depth++;
+        for (auto p: s->pl)
+            out << idnt_str << "param: " << p.first << ", " << p.second << std::endl;
+        depth--;
+    }
+
+    // void visit(Var *s) {
+    //     out << idnt_str << "Var: " <<
+    // }
     #undef idnt_str
     #undef PConst
 };

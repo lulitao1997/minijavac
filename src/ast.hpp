@@ -2,26 +2,30 @@
 #define AST_HPP
 
 #include <vector>
+#include <string>
 
 namespace ast {
-    struct Expression;
-    struct IntConst;
-    struct BoolConst;
-    struct Object;
-    struct Uop;
-    struct NewObj;
-    struct Dispatch;
-    struct Bop;
 
-    struct Statement;
-    struct Block;
-    struct If;
-    struct While;
-    struct Println;
-}
+struct Expression;
+struct IntConst;
+struct BoolConst;
+struct Object;
+struct Uop;
+struct NewObj;
+struct Dispatch;
+struct Bop;
 
+struct Statement;
+struct Block;
+struct If;
+struct While;
+struct Println;
+struct Assign;
+struct ArrAssign;
 
-namespace ast {
+struct Class;
+// struct Var;
+struct Method;
 
 struct Visitor {
     // Visitor() = delete;
@@ -38,6 +42,12 @@ struct Visitor {
     V0(If);
     V0(While);
     V0(Println);
+    V0(Assign);
+    V0(ArrAssign);
+
+    V0(Class);
+    // V0(Var);
+    V0(Method);
     #undef V0
 };
 struct Node {
@@ -56,7 +66,7 @@ std::vector<Tp> single(Tp v) {
 
 
 typedef Expression *expr_ptr;
-
+typedef std::pair<std::string, std::string> ParamDecl;
 }
 
 #endif

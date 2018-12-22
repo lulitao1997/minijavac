@@ -51,7 +51,7 @@ WHITESPACE [ \f\r\t\v]
 
 "&&" { return tk::AND; }
 "new int" { return tk::NEWINT; }
-".length" { return tk::DOTLENGTH; }
+"length" { return tk::LENGTH; }
 
 
 "if" { return tk::IF; }
@@ -59,7 +59,19 @@ WHITESPACE [ \f\r\t\v]
 "while" { return tk::WHILE; }
 "System.out.println" { return tk::PRINTLN; }
 
-[_a-z]{VAR_CHARSET}+ {
+"class" { return tk::CLASS; }
+"extends" { return tk::EXTENDS; }
+"public" { return tk::PUBLIC; }
+"return" { return tk::RETURN; }
+"static" { return tk::STATIC; }
+"void" { return tk::VOID; }
+"main" { return tk::MAIN; }
+ /*
+"String" { return tk::M_STRING; }
+ */
+
+
+[_a-zA-Z]{VAR_CHARSET}* {
     yylval->emplace<std::string>(yytext);
     return tk::OBJECTID;
 }

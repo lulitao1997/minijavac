@@ -2,10 +2,12 @@
 #define STATEMENT_HPP_
 
 #include <vector>
+#include <string>
 #include "ast.hpp"
 
 namespace ast {
 
+struct Expression;
 struct Statement: public Node {};
 
 struct Block: Statement {
@@ -34,7 +36,19 @@ struct Println: public Statement {
     void accept(Visitor *v) { v->visit(this); }
 };
 
-// TODO: assign
+struct Assign: public Statement {
+    Assign(std::string id, Expression *e): id(id), e(e) {}
+    std::string id;
+    Expression *e;
+    void accept(Visitor *v) { v->visit(this); }
+};
+
+struct ArrAssign: public Statement {
+    ArrAssign(std::string id, Expression *idx, Expression *e): id(id), idx(idx), e(e) {}
+    std::string id;
+    Expression *e, *idx;
+    void accept(Visitor *v) { v->visit(this); }
+};
 
 }
 

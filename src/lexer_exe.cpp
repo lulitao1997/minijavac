@@ -1,16 +1,15 @@
 #include <scanner.hpp>
 #include <parser_output.hpp>
 #include <iostream>
-#include <sstream>
+#include <fstream>
 #include <string>
 
 using namespace std;
 
 int main() {
-    string parser_input = "123 + 567 + 7\n";
 
     ParserOutput out;
-    auto in = istringstream(parser_input);
+    auto in = fstream("test.java", ios::in);
     yy::scanner s(&in);
     // while (s.yylex()) ;
 
@@ -20,4 +19,5 @@ int main() {
         cout << tktype << ", " << yylloc << endl;
         if (!tktype) break;
     }
+    cerr << "end: " << tktype << endl;
 }

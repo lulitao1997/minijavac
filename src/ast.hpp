@@ -31,6 +31,8 @@ struct ArrAssign;
 struct Class;
 struct Method;
 
+struct ParamDecl;
+
 struct Visitor {
     // Visitor() = delete;
     #define V0(name) virtual void visit(name *o) = 0
@@ -72,7 +74,6 @@ std::vector<Tp> single(Tp v) {
     return std::vector<Tp>{v};
 }
 
-typedef std::pair<std::string, std::string> ParamDecl;
 }
 
 #endif

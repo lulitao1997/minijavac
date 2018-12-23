@@ -7,7 +7,9 @@
 
 namespace ast {
 
-struct Expression: public Node {};
+struct Expression: public Node {
+    std::string type;
+};
 
 struct IntConst: Expression {
     IntConst(int val): val(val) {}

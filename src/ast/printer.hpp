@@ -105,22 +105,22 @@ struct Printer: public Visitor {
 
     /////// class /////////
     void visit(Class *s) {
-        out << idnt_str << "Class: " << s->id << " extends: " << s->parent << std::endl;
+        out << idnt_str << "Class: " << s->id << " extends: " << s->parent->id << std::endl;
         depth++;
         for (auto a: s->attrs)
-            out << idnt_str << "attrs: " << a.first << " : " << a.second << std::endl;
+            out << idnt_str << "attrs: " << a->t->id << " : " << a->id << std::endl;
         for (Method *a: s->methods)
             a->accept(this);
         depth--;
     }
 
     void visit(Method *s) {
-        out << idnt_str << "Method: " << s->id << " : " << s->type << std::endl;
+        out << idnt_str << "Method: " << s->id << " : " << s->type->id << std::endl;
         depth++;
         for (auto p: s->pl)
-            out << idnt_str << "param: " << p.first << ", " << p.second << std::endl;
+            out << idnt_str << "param: " << p->t->id << ", " << p->id << std::endl;
         for (auto p: s->vl)
-            out << idnt_str << "var_decl: " << p.first << ", " << p.second << std::endl;
+            out << idnt_str << "var_decl: " << p->t->id << ", " << p->id << std::endl;
         for (auto p: s->sl)
             p->accept(this);
         depth--;

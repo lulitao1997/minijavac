@@ -12,6 +12,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 add_executable(parser_exe
     parser_exe.cpp
     # driver.cpp
+    ast/program.cpp
 
     ${FLEX_yy_scanner_OUTPUTS}
     ${BISON_yy_parser_OUTPUTS}
@@ -19,6 +20,7 @@ add_executable(parser_exe
 
 add_executable(lexer_exe
     lexer_exe.cpp
+    ast/program.cpp
     ${FLEX_yy_scanner_OUTPUTS}
     ${BISON_yy_parser_OUTPUTS}
 )

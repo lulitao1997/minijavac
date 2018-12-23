@@ -28,11 +28,6 @@
 }
 
 %code {
-    #include <iostream>
-    #include <cstdlib>
-    #include <fstream>
-    #include <utility>
-    #include <string>
     #include <vector>
     #include <ast/expression.hpp>
     #include <ast/statement.hpp>
@@ -40,7 +35,6 @@
 
     #include "scanner.hpp"
     using namespace ast;
-    using std::move;
     using std::vector;
     using std::string;
 
@@ -92,8 +86,8 @@
 %type <std::vector<ast::Class*>> class_decl_list
 %type <ast::Class*> main_class class_decl
 %type <std::string> type_
-%type <ast::ParamDecl> param_decl var_decl
-%type <std::vector<ast::ParamDecl>> var_decl_list non_empty_param_decl_list param_decl_list
+%type <ast::ParamDecl*> param_decl var_decl
+%type <std::vector<ast::ParamDecl*>> var_decl_list non_empty_param_decl_list param_decl_list
 %type <ast::Method*> method_decl main_method
 %type <std::vector<ast::Method*>> method_decl_list
 
@@ -153,7 +147,6 @@ expr
 // non_empty_stmt_list
 
 stmt_list
-  // : %empty { $$ = vector<Statement*>{}; }
   : stmt[s] { $$ = single($s); }
   | stmt_list[sl] stmt[s] { $$ = append($sl, $s); }
 
@@ -172,21 +165,21 @@ type_
   | OBJECTID[t] '[' ']' { $$ = $t + string("[]"); }
 
 var_decl
-  : type_[t] OBJECTID[o] ';' { $$ = make_pair($t, $o); }
+  : type_[t] OBJECTID[o] ';' { $$ = new ParamDecl{Type($t), $o}; }
 
 var_decl_list
-  : %empty { $$ = vector<ParamDecl>{}; }
+  : %empty { $$ = vector<ParamDecl*>{}; }
   | var_decl_list[vl] var_decl[v] { $$ = append($vl, $v); }
 
 param_decl
-  : type_[t] OBJECTID[o] { $$ = make_pair($t, $o); }
+  : type_[t] OBJECTID[o] { $$ = new ParamDecl{Type($t), $o}; }
 
 non_empty_param_decl_list
-  : param_decl[p] { $$ = vector<ParamDecl>{$p}; }
+  : param_decl[p] { $$ = vector<ParamDecl*>{$p}; }
   | non_empty_param_decl_list[pl] ',' param_decl[p] { $$ = append($pl, $p); }
 
 param_decl_list
-  : %empty { $$ = vector<ParamDecl>{}; }
+  : %empty { $$ = vector<ParamDecl*>{}; }
   | non_empty_param_decl_list[pl] { $$ = $pl; }
 
 method_decl
@@ -216,7 +209,7 @@ class_decl
       var_decl_list[vl]
       method_decl_list[ml]
     '}'
-    { $$ = new Class($o, "", $vl, $ml); }
+    { $$ = new Class($o, "<object>", $vl, $ml); }
 
 class_decl_list
   : %empty { $$ = vector<Class*>{}; }
@@ -227,13 +220,13 @@ main_method
     stmt[s]
   '}'
   { $$ = new Method(string("void"), string("main"),
-                    $pl, vector<ParamDecl>{},
+                    $pl, vector<ParamDecl*>{},
                     vector<Statement*>{}, nullptr); }
 main_class
   : CLASS OBJECTID[o] '{'
       main_method[m]
     '}'
-    { $$ = new Class(std::string("main"), std::string(""), vector<ParamDecl>{}, single($m)); }
+    { $$ = new Class(string("main"), "<object>", vector<ParamDecl*>{}, single($m)); }
 
 %%
 

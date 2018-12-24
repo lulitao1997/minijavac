@@ -86,8 +86,10 @@
 %type <std::vector<ast::Class*>> class_decl_list
 %type <ast::Class*> main_class class_decl
 %type <std::string> type_
-%type <ast::ParamDecl*> param_decl var_decl
-%type <std::vector<ast::ParamDecl*>> var_decl_list non_empty_param_decl_list param_decl_list
+%type <ast::Param*> param_decl
+%type <ast::Var*> var_decl
+%type <std::vector<ast::Var*>> var_decl_list
+%type <std::vector<ast::Param*>> non_empty_param_decl_list param_decl_list
 %type <ast::Method*> method_decl main_method
 %type <std::vector<ast::Method*>> method_decl_list
 
@@ -138,7 +140,7 @@ expr
   | BOOL_CONST[b] { $$ = new BoolConst{$b}; }
   | OBJECTID[o] { $$ = new Object{$o}; } // TODO: this
   | NEWINT '[' expr[e] ']' { $$ = new Uop{NewInt, $e}; }
-  | NEW OBJECTID[o] "(" ")" { $$ = new NewObj{$o}; }
+  | NEW OBJECTID[o] "(" ")" { $$ = new NewObj{Type($o)}; }
   | '{' expr[e] '}' { $$ = new Uop{Bracket, $e}; }
   | '!' expr[e] { $$ = new Uop{Not, $e}; }
   | '(' expr[e] ')' { $$ = new Uop{Bracket, $e}; }
@@ -156,8 +158,8 @@ stmt
   | IF '(' expr[e] ')' stmt[s1] ELSE stmt[s2] { $$ = new If{$e, $s1, $s2}; }
   | WHILE '(' expr[e] ')' stmt[s] { $$ = new While{$e, $s}; }
   | PRINTLN '(' expr[e] ')' ';' { $$ = new Println{$e}; }
-  | OBJECTID[o] '=' expr[e] ';' { $$ = new Assign{$o, $e}; }
-  | OBJECTID[o] '[' expr[e1] ']' '=' expr[e2] ';' { $$ = new ArrAssign{$o, $e1, $e2}; }
+  | OBJECTID[o] '=' expr[e] ';' { $$ = new Assign{new Object{$o}, $e}; }
+  | OBJECTID[o] '[' expr[e1] ']' '=' expr[e2] ';' { $$ = new ArrAssign{new Object{$o}, $e1, $e2}; }
   ;
 
 type_
@@ -165,21 +167,21 @@ type_
   | OBJECTID[t] '[' ']' { $$ = $t + string("[]"); }
 
 var_decl
-  : type_[t] OBJECTID[o] ';' { $$ = new ParamDecl{Type($t), $o}; }
+  : type_[t] OBJECTID[o] ';' { $$ = new Var{Type($t), $o}; }
 
 var_decl_list
-  : %empty { $$ = vector<ParamDecl*>{}; }
+  : %empty { $$ = vector<Var*>{}; }
   | var_decl_list[vl] var_decl[v] { $$ = append($vl, $v); }
 
 param_decl
-  : type_[t] OBJECTID[o] { $$ = new ParamDecl{Type($t), $o}; }
+  : type_[t] OBJECTID[o] { $$ = new Param{Type($t), $o}; }
 
 non_empty_param_decl_list
-  : param_decl[p] { $$ = vector<ParamDecl*>{$p}; }
+  : param_decl[p] { $$ = vector<Param*>{$p}; }
   | non_empty_param_decl_list[pl] ',' param_decl[p] { $$ = append($pl, $p); }
 
 param_decl_list
-  : %empty { $$ = vector<ParamDecl*>{}; }
+  : %empty { $$ = vector<Param*>{}; }
   | non_empty_param_decl_list[pl] { $$ = $pl; }
 
 method_decl
@@ -220,13 +222,13 @@ main_method
     stmt[s]
   '}'
   { $$ = new Method(string("void"), string("main"),
-                    $pl, vector<ParamDecl*>{},
+                    $pl, vector<Var*>{},
                     vector<Statement*>{}, nullptr); }
 main_class
   : CLASS OBJECTID[o] '{'
       main_method[m]
     '}'
-    { $$ = new Class(string("main"), "<object>", vector<ParamDecl*>{}, single($m)); }
+    { $$ = new Class(string("main"), "<object>", vector<Var*>{}, single($m)); }
 
 %%
 

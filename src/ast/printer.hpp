@@ -26,7 +26,7 @@ struct Printer: public Visitor {
     PConst(BoolConst);
 
     void visit(Bop *o) {
-        out << idnt_str << "bop: " << (char)o->op << "||||" << o->loc << std::endl;
+        out << idnt_str << "bop: " << (char)o->op << std::endl;
         depth++;
         o->l->accept(this);
         o->r->accept(this);
@@ -51,7 +51,7 @@ struct Printer: public Visitor {
     }
 
     void visit(NewObj *o) {
-        out << idnt_str << "NewObj: " << o->id << std::endl;
+        out << idnt_str << "NewObj: " << o->type->id << std::endl;
     }
     void visit(Object *o) {
         out << idnt_str << "Object: " << o->id << std::endl;
@@ -90,7 +90,8 @@ struct Printer: public Visitor {
     void visit(ArrAssign *s) {
         out << idnt_str << "Assign: " << std::endl;
         depth++;
-        out << idnt_str << s->id << std::endl;
+        s->o->accept(this);
+        // out << idnt_str << s->id << std::endl;
         s->idx->accept(this);
         s->e->accept(this);
         depth--;
@@ -98,7 +99,7 @@ struct Printer: public Visitor {
     void visit(Assign *s) {
         out << idnt_str << "Assign: " << std::endl;
         depth++;
-        out << idnt_str << s->id << std::endl;
+        s->o->accept(this);
         s->e->accept(this);
         depth--;
     }
@@ -118,12 +119,16 @@ struct Printer: public Visitor {
         out << idnt_str << "Method: " << s->id << " : " << s->type->id << std::endl;
         depth++;
         for (auto p: s->pl)
-            out << idnt_str << "param: " << p->t->id << ", " << p->id << std::endl;
+            { out << idnt_str << "param: "; p->accept(this); }
         for (auto p: s->vl)
-            out << idnt_str << "var_decl: " << p->t->id << ", " << p->id << std::endl;
+            { out << idnt_str << "var_decl: "; p->accept(this); }
         for (auto p: s->sl)
             p->accept(this);
         depth--;
+    }
+
+    void visit(ParamDecl *p) {
+        out << p->t->id << ", " << p->id << std::endl;
     }
 
     // void visit(Var *s) {

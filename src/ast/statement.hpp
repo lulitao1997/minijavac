@@ -37,15 +37,15 @@ struct Println: public Statement {
 };
 
 struct Assign: public Statement {
-    Assign(std::string id, Expression *e): id(id), e(e) {}
-    std::string id;
+    Assign(Object *o, Expression *e): o(o), e(e) {}
+    Object *o;
     Expression *e;
     void accept(Visitor *v) { v->visit(this); }
 };
 
 struct ArrAssign: public Statement {
-    ArrAssign(std::string id, Expression *idx, Expression *e): id(id), idx(idx), e(e) {}
-    std::string id;
+    ArrAssign(Object *o, Expression *idx, Expression *e): o(o), idx(idx), e(e) {}
+    Object *o;
     Expression *e, *idx;
     void accept(Visitor *v) { v->visit(this); }
 };

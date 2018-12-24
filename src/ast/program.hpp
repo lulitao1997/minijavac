@@ -8,6 +8,7 @@
 
 namespace ast {
 
+struct Param;
 struct Var;
 struct Method;
 
@@ -15,7 +16,17 @@ struct Class;
 
 struct Type {
     explicit Type(std::string id);
+    Type(): Type("<error>") {}
 
+    // bool operator<=(const Type& rhs);
+    bool is_compatible(const Type &rhs) const;
+    bool is_arithmetic() const;
+    bool operator==(const Type& rhs) const;
+    bool operator!=(const Type& rhs) const;
+
+    explicit operator bool() const {
+        return *c;
+    }
     Class& operator*() {
         assert(*c);
         return **c;
@@ -28,12 +39,15 @@ struct Type {
     Class **c;
     static std::unordered_map<std::string, Class*> *M;
 
+    bool is_array();
+    Type array_body();
 private:
-    Class *make_class(std::string id, std::string parent, std::vector<ParamDecl*> attrs, std::vector<Method*> methods);
+    Class *make_class(std::string id, std::string parent, std::vector<Var*> attrs, std::vector<Method*> methods);
+    std::string remove_subscript(std::string s);
 };
 
 struct Class: Node {
-    Class(std::string id, std::string parent, std::vector<ParamDecl*> attrs, std::vector<Method*> methods)
+    Class(std::string id, std::string parent, std::vector<Var*> attrs, std::vector<Method*> methods)
     : id(id), parent(parent), attrs(attrs), methods(methods)
     {
         using namespace std;
@@ -45,7 +59,7 @@ struct Class: Node {
     std::string id;
     Type parent;
     // std::vector<Var*> attrs;
-    std::vector<ParamDecl*> attrs;
+    std::vector<Var*> attrs;
     std::vector<Method*> methods;
     void accept(Visitor *v) { v->visit(this); }
 
@@ -53,22 +67,38 @@ struct Class: Node {
 
 
 struct Method: Node {
-    Method(std::string type, std::string id, std::vector<ParamDecl*> pl,
-           std::vector<ParamDecl*> vl, std::vector<Statement*> sl, Expression *ret)
+    Method(std::string type, std::string id, std::vector<Param*> pl,
+           std::vector<Var*> vl, std::vector<Statement*> sl, Expression *ret)
     : type(type), id(id), pl(pl), vl(vl), sl(sl), ret(ret) {}
     Type type;
     std::string id;
-    std::vector<ParamDecl*> pl, vl;
+    std::vector<Param*> pl;
+    std::vector<Var*> vl;
     std::vector<Statement*> sl;
     Expression *ret;
     void accept(Visitor *v) { v->visit(this); }
 };
 
 // typedef std::pair<Type, std::string> ParamDecl;
-struct ParamDecl {
+struct ParamDecl: Node {
+    ParamDecl(Type t, std::string id, const char *str)
+    : t(t), id(id), str(str) {}
     Type t;
     std::string id;
+    const char *str;
+    void accept(Visitor *v) { v->visit(this); }
 };
+
+struct Param: ParamDecl {
+    Param(Type t, std::string id)
+    : ParamDecl(t, id, "method parameter") {}
+};
+
+struct Var: ParamDecl {
+    Var(Type t, std::string id)
+    : ParamDecl(t, id, "variable declaration") {}
+};
+
 }
 
 #endif

@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include "location.hh"
+#include "utils.hpp"
 
 namespace yy {
     extern location cur_loc;
@@ -32,6 +33,8 @@ struct Class;
 struct Method;
 
 struct ParamDecl;
+struct Param;
+struct Var;
 
 struct Visitor {
     // Visitor() = delete;
@@ -52,7 +55,7 @@ struct Visitor {
     V0(ArrAssign);
 
     V0(Class);
-    // V0(Var);
+    V0(ParamDecl);
     V0(Method);
     #undef V0
 };

@@ -2,13 +2,14 @@
 #define EXPRESSION_HPP_
 
 #include "ast.hpp"
+#include "program.hpp"
 #include <string>
 #include <vector>
 
 namespace ast {
 
 struct Expression: public Node {
-    std::string type;
+    Type type;
 };
 
 struct IntConst: Expression {
@@ -65,8 +66,8 @@ struct Dispatch: public Expression {
 };
 
 struct NewObj: public Expression {
-    NewObj(std::string id): id(id) {}
-    std::string id;
+    NewObj(Type type): type(type) {}
+    Type type;
     void accept(Visitor *v) { v->visit(this); }
 };
 

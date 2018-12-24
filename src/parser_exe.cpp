@@ -1,6 +1,7 @@
 #include "parser.hxx"
 #include <scanner.hpp>
 #include <ast/printer.hpp>
+#include <ast/typechecker.hpp>
 #include <parser_output.hpp>
 #include <iostream>
 #include <fstream>
@@ -25,5 +26,9 @@ int main() {
     // out.result->accept(pr);
     for (auto c: out.result) {
         c->accept(pr);
+    }
+    auto *tc = new ast::TypeChecker;
+    for (auto c: out.result) {
+        c->accept(tc);
     }
 }

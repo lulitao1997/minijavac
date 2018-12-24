@@ -9,20 +9,22 @@ FLEX_TARGET(yy_scanner scanner.l ${CMAKE_CURRENT_BINARY_DIR}/scanner.cxx
 ADD_FLEX_BISON_DEPENDENCY(yy_scanner yy_parser)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
-add_executable(parser_exe
-    parser_exe.cpp
-    # driver.cpp
-    ast/program.cpp
 
+set(deps
+    utils.cpp
+    ast/program.cpp
     ${FLEX_yy_scanner_OUTPUTS}
     ${BISON_yy_parser_OUTPUTS}
 )
 
+add_executable(parser_exe
+    parser_exe.cpp
+    ${deps}
+)
+
 add_executable(lexer_exe
     lexer_exe.cpp
-    ast/program.cpp
-    ${FLEX_yy_scanner_OUTPUTS}
-    ${BISON_yy_parser_OUTPUTS}
+    ${deps}
 )
 
 set_property(TARGET parser_exe PROPERTY CXX_STANDARD 14)

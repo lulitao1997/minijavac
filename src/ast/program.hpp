@@ -15,7 +15,7 @@ struct Method;
 struct Class;
 
 struct Type {
-    explicit Type(std::string id);
+    explicit Type(std::string name);
     Type(): Type("<error>") {}
 
     // bool operator<=(const Type& rhs);
@@ -24,26 +24,31 @@ struct Type {
     bool operator==(const Type& rhs) const;
     bool operator!=(const Type& rhs) const;
 
-    explicit operator bool() const {
-        return *c;
+    explicit operator bool() const;
+    friend std::ostream& operator<<(std::ostream& out, const Type& t) {
+        return out << *t.id;
     }
-    Class& operator*() {
-        assert(*c);
-        return **c;
-    }
-    Class *operator->() {
-        assert(*c);
-        return *c;
-    }
+    // Class& operator*() {
+    //     assert(*c);
+    //     return **c;
+    // }
+    // Class *operator->() {
+    //     assert(*c);
+    //     return *c;
+    // }
     // std::string id;
+    bool is_array() const ;
+    Type array_body() const ;
+    const std::vector<Method*>& methods();
+    friend class Class;
+protected:
     Class **c;
+    const std::string *id;
     static std::unordered_map<std::string, Class*> *M;
 
-    bool is_array();
-    Type array_body();
-private:
-    Class *make_class(std::string id, std::string parent, std::vector<Var*> attrs, std::vector<Method*> methods);
-    std::string remove_subscript(std::string s);
+
+    Class *make_class(std::string id, std::string parent, std::vector<Var*> attrs, std::vector<Method*> methods) const ;
+    std::string remove_subscript(std::string s) const;
 };
 
 struct Class: Node {

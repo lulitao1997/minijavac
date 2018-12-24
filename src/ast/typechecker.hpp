@@ -30,12 +30,13 @@ struct TypeChecker: Visitor {
     void visit(BoolConst *o) { o->type = Type("boolean"); }
     void visit(Object *o) {
         auto ptr = env.find(o->id);
+        std::cerr << " >>>>> find variable type: " << o->id << ", " << *ptr << std::endl;
         if (!ptr) {
             complain(o->loc) << "variable undefined\n";
             return;
         }
         o->type = *ptr;
-        if (o->type == Type("<error>"))
+        if (!o->type)
             complain(o->loc) << "type undefined\n";
     }
 
@@ -73,7 +74,7 @@ struct TypeChecker: Visitor {
             // TASSERT(o->r, o->l->type, "type not compatible", o); // TODO: base & derived bop
             if (o->l->type != o->r->type && !(o->l->type.is_arithmetic() && o->r->type.is_arithmetic())) {
                 complain(o->loc) << "type not compatible around `" << char(o->op)
-                                 << "`, lhs type: " << o->l->type->id << ", rhs type: " << o->r->type->id << std::endl;
+                                 << "`, lhs type: " << o->l->type << ", rhs type: " << o->r->type << std::endl;
             }
             // ret type as-is
         }
@@ -95,7 +96,7 @@ struct TypeChecker: Visitor {
             e->accept(this);
 
         Method *sig = nullptr;
-        for (Method *m: o->e->type->methods)
+        for (Method *m: o->e->type.methods())
             if (m->id == o->id && m->pl.size() == o->param_list.size()) {
                 bool eq = true;
                 int idx = 0;
@@ -144,7 +145,7 @@ struct TypeChecker: Visitor {
         o->e->accept(this);
         if (!o->o->type.is_compatible(o->e->type)) {
             complain(o->e->loc) << "type not compatible, lhs type: "
-                                << o->o->type->id << ", rhs type: " << o->e->type->id << std::endl;
+                                << o->o->type << ", rhs type: " << o->e->type << std::endl;
         }
     }
     void visit(ArrAssign *o) {
@@ -183,7 +184,7 @@ struct TypeChecker: Visitor {
         env.enter();
         // allow param shadowing attr, but we do not allow param have same id.
 
-        if (m->type == Type("<error>")) {
+        if (!m->type) {
             complain(m->loc) << "method return type undefined\n";
         }
 
@@ -208,7 +209,7 @@ struct TypeChecker: Visitor {
         env.leave();
     }
     void visit(ParamDecl *p) {
-        if (p->t == Type("<error>"))
+        if (!p->t)
             complain(p->loc) << p->str << " undefined\n";
         if (env.insert(p->id, p->t) == -1)
             complain(p->loc) << "dulplicate " << p->str << std::endl;

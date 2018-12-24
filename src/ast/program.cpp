@@ -3,23 +3,32 @@
 
 namespace ast{
 
-Class *Type::make_class(std::string id, std::string parent, std::vector<Var*> attrs, std::vector<Method*> methods) {
+Class *Type::make_class(std::string id, std::string parent, std::vector<Var*> attrs, std::vector<Method*> methods) const {
     return new Class(id, parent, attrs, methods);
 }
-std::string Type::remove_subscript(std::string s) {
+std::string Type::remove_subscript(std::string s) const {
     return std::string(s.begin(), s.end()-2);
 }
 
-Type Type::array_body() {
-    return Type(remove_subscript((*c)->id));
+Type::operator bool() const {
+    std::cerr << "check type:::" << *id << ": " << *c << std::endl;
+    if (!is_array())
+        return *c;
+    return bool(Type(remove_subscript(*id)));
 }
-bool Type::is_array() {
-    return *((*c)->id.rbegin()) == ']';
+Type Type::array_body() const {
+    return Type(remove_subscript((*id)));
+}
+bool Type::is_array() const {
+    return *((*id).rbegin()) == ']';
+}
+const std::vector<Method*>& Type::methods() {
+    return (*c)->methods;
 }
 
 std::unordered_map<std::string, Class*> *Type::M;
 
-Type::Type(std::string id) {
+Type::Type(std::string name) {
     using namespace std;
     if (!M) {
         M = new unordered_map<string, Class*>;
@@ -34,15 +43,20 @@ Type::Type(std::string id) {
         M = p;
         // cerr << "new umap" << endl;
     }
-    c = &(*M)[id];
-    if (*id.rbegin() == ']' && !*c) {
-        *c = make_class(id, remove_subscript(id), {}, {}); // get rid of []
-        // TODO: add dispatch.
+    c = &(*M)[name];
+    // auto p = M->insert({name, nullptr}).first;
+    // id = &p->first; // c = &p->second;
+    id = new string(name);
+    // assert(c == &(*M)[name]);
+    if (*id->rbegin() == ']' && !c) {
+        *c = make_class(*id, remove_subscript(*id), {}, {}); // get rid of []
+        // TODO: add dispatch, for length maybe.
     }
 
 }
 
 bool Type::operator==(const Type& rhs) const {
+    std:: cerr << "type === " << *id << ':' << *c << ", " << *rhs.id << ":" <<  *rhs.c << std::endl;
     return *c == *rhs.c;
 }
 bool Type::operator!=(const Type& rhs) const {
@@ -60,10 +74,10 @@ bool Type::is_compatible(const Type& rhs) const {
 
     /// Base = Derived; ok
     Type now = rhs;
-    while (now && now->id != "<object>") {
-        std::cerr << "<= ---------" << now->id << std::endl;
+    while (now && *now.id != "<object>") {
+        std::cerr << "<= ---------" << *now.id << std::endl;
         if (now == *this)  return true;
-        now = now->parent;
+        now = (*now.c)->parent;
     }
     std::cerr << " ======== "  << std::endl;
     return false;

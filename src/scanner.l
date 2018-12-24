@@ -15,7 +15,11 @@ using tk = yy::parser::token; // less verbose
 // #define yyterminate() return( token::END )
 
 /* update location when matching */
-#define YY_USER_ACTION yylloc->columns(yyleng); // TODO: check col and line number...
+#define YY_USER_ACTION \
+    yylloc->step(); \
+    yylloc->columns(yyleng); \
+
+// TODO: check col and line number...
 %}
 
 VAR_CHARSET [a-zA-Z0-9_]
@@ -25,10 +29,6 @@ WHITESPACE [ \f\r\t\v]
 %x STR_ERROR
 
 %%
-
-%{
-    yylloc->step();
-%}
 
 {WHITESPACE}+ {}
 

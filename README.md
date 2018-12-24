@@ -1,4 +1,6 @@
 ext:
+    check syclic depenence.
+    pretty printer.
     string constant
     optional "else"
     for stmt

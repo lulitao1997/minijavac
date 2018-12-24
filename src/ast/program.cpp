@@ -11,7 +11,7 @@ std::string Type::remove_subscript(std::string s) const {
 }
 
 Type::operator bool() const {
-    std::cerr << "check type:::" << *id << ": " << *c << std::endl;
+    // std::cerr << "check type:::" << *id << ": " << *c << std::endl;
     if (!is_array())
         return *c;
     return bool(Type(remove_subscript(*id)));
@@ -56,7 +56,7 @@ Type::Type(std::string name) {
 }
 
 bool Type::operator==(const Type& rhs) const {
-    std:: cerr << "type === " << *id << ':' << *c << ", " << *rhs.id << ":" <<  *rhs.c << std::endl;
+    // std:: cerr << "type === " << *id << ':' << *c << ", " << *rhs.id << ":" <<  *rhs.c << std::endl;
     return *c == *rhs.c;
 }
 bool Type::operator!=(const Type& rhs) const {
@@ -75,11 +75,11 @@ bool Type::is_compatible(const Type& rhs) const {
     /// Base = Derived; ok
     Type now = rhs;
     while (now && *now.id != "<object>") {
-        std::cerr << "<= ---------" << *now.id << std::endl;
+        // std::cerr << "<= ---------" << *now.id << std::endl;
         if (now == *this)  return true;
         now = (*now.c)->parent;
     }
-    std::cerr << " ======== "  << std::endl;
+    // std::cerr << " ======== "  << std::endl;
     return false;
 }
 

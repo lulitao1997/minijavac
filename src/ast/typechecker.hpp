@@ -30,7 +30,7 @@ struct TypeChecker: Visitor {
     void visit(BoolConst *o) { o->type = Type("boolean"); }
     void visit(Object *o) {
         auto ptr = env.find(o->id);
-        std::cerr << " >>>>> find variable type: " << o->id << ", " << *ptr << std::endl;
+        // std::cerr << " >>>>> find variable type: " << o->id << ", " << *ptr << std::endl;
         if (!ptr) {
             complain(o->loc) << "variable undefined\n";
             return;
@@ -115,7 +115,11 @@ struct TypeChecker: Visitor {
         }
         o->type = sig->type;
     }
-    void visit(NewObj *o) {}
+    void visit(NewObj *o) {
+        if (!o->type) {
+            complain(o->loc) << "type undefined in new statement\n";
+        }
+    }
 
     ///////// statement /////////
     void visit(Block *o) {
@@ -210,7 +214,7 @@ struct TypeChecker: Visitor {
     }
     void visit(ParamDecl *p) {
         if (!p->t)
-            complain(p->loc) << p->str << " undefined\n";
+            complain(p->loc) << "type undefined\n";
         if (env.insert(p->id, p->t) == -1)
             complain(p->loc) << "dulplicate " << p->str << std::endl;
     }

@@ -127,15 +127,18 @@ struct Printer: public Visitor {
         depth++;
         for (auto p: s->pl)
             { out << idnt_str << "param: "; p->accept(this); }
-        for (auto p: s->vl)
-            { out << idnt_str << "var_decl: "; p->accept(this); }
+        // for (auto p: s->vl)
+        //     { out << idnt_str << "var_decl: "; p->accept(this); }
         for (auto p: s->sl)
             p->accept(this);
         depth--;
     }
 
-    void visit(ParamDecl *p) {
-        out << p->t << ", " << p->id << std::endl;
+    void visit(Var *p) {
+        out << "VarDecl: " << p->t << ", " << p->id << std::endl;
+    }
+    void visit(Param *p) {
+        out << "Param: " << p->t << ", " << p->id << std::endl;
     }
 
     // void visit(Var *s) {

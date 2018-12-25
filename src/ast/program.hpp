@@ -1,6 +1,7 @@
 #ifndef PROGRAM_HPP_
 #define PROGRAM_HPP_
 #include "ast.hpp"
+#include "statement.hpp"
 #include "type.hpp"
 #include <string>
 #include <unordered_map>
@@ -46,27 +47,28 @@ struct ParamDecl: Node {
     std::string id;
     bool checked = false;
     const char *str;
-    void accept(Visitor *v) { v->visit(this); }
 };
 
 struct Param: ParamDecl {
     Param(Type t, std::string id)
     : ParamDecl(t, id, "method parameter") {}
+    void accept(Visitor *v) { v->visit(this); }
 };
 
-struct Var: ParamDecl {
+struct Var: ParamDecl, Statement {
     Var(Type t, std::string id)
     : ParamDecl(t, id, "variable declaration") {}
+    void accept(Visitor *v) { v->visit(this); }
 };
 
 struct Method: Node {
     Method(std::string type, std::string id, std::vector<Param*> pl,
-           std::vector<Var*> vl, std::vector<Statement*> sl, Expression *ret)
-    : type(type), id(id), pl(pl), vl(vl), sl(sl), ret(ret) {}
+           std::vector<Statement*> sl, Expression *ret)
+    : type(type), id(id), pl(pl), sl(sl), ret(ret) {}
     Type type;
     std::string id;
     std::vector<Param*> pl;
-    std::vector<Var*> vl;
+    // std::vector<Var*> vl;
     std::vector<Statement*> sl;
     Expression *ret;
     void accept(Visitor *v) { v->visit(this); }

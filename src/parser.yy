@@ -84,12 +84,12 @@
 %token CLASS EXTENDS PUBLIC RETURN STATIC VOID MAIN
 %token INT
 
-%type <std::vector<ast::Class*>> class_decl_list
+%type <std::vector<ast::Class*>> class_decl_list cl2
 %type <ast::Class*> main_class class_decl
 %type <std::string> type_
 %type <ast::Param*> param_decl
 %type <ast::Var*> var_decl
-%type <std::vector<ast::Var*>> var_decl_list
+%type <std::vector<ast::Var*>> attr_list
 %type <std::vector<ast::Param*>> non_empty_param_decl_list param_decl_list
 %type <ast::Method*> method_decl main_method
 %type <std::vector<ast::Method*>> method_decl_list
@@ -113,9 +113,11 @@
 %%
 
 program
-//   : expr { res.result = $$ = $1; }
-//   : stmt { res.result = $$ = $1; }
-  : main_class[m] class_decl_list[cl] { res.result = $$ = new Program(append($cl, $m)); }
+  : cl2[cl] { res.result = $$ = new Program($cl); }
+
+cl2
+  : main_class[m] class_decl_list[c2] { $$ = append(single($m), $c2); }
+  // | class_decl_list[c1] cl2[c] { $$ = append($c1, $c); }
   ;
 
 non_empty_param_list
@@ -129,14 +131,14 @@ param_list
   ;
 
 expr
-  : expr[e1] AND expr[e2] { $$ = new Bop{Add, $e1, $e2}; }
-  | expr[e1] '<' expr[e2] { $$ = new Bop{Le, $e1, $e2}; }
-  | expr[e1] '+' expr[e2] { $$ = new Bop{Add, $e1, $e2}; }
-  | expr[e1] '-' expr[e2] { $$ = new Bop{Minus, $e1, $e2}; }
-  | expr[e1] '*' expr[e2] { $$ = new Bop{Mul, $e1, $e2}; }
-  | expr[e1] '[' expr[e2] ']' { $$ = new Bop{Arr, $e1, $e2}; }
+  : expr[e1] AND expr[e2] { $$ = new Bop{Add, $e1, $e2}; @$ = @2; }
+  | expr[e1] '<' expr[e2] { $$ = new Bop{Le, $e1, $e2}; @$ = @2;}
+  | expr[e1] '+' expr[e2] { $$ = new Bop{Add, $e1, $e2}; @$ = @2;}
+  | expr[e1] '-' expr[e2] { $$ = new Bop{Minus, $e1, $e2}; @$ = @2;}
+  | expr[e1] '*' expr[e2] { $$ = new Bop{Mul, $e1, $e2}; @$ = @2;}
+  | expr[e1] '[' expr[e2] ']' { $$ = new Bop{Arr, $e1, $e2}; @$ = @2;}
   | expr[e] '.' LENGTH {$$ = new Uop{Len, $e}; }
-  | expr[e] '.' OBJECTID[o] '(' param_list[l] ')' { $$ = new Dispatch{$e, $o, $l}; }
+  | expr[e] '.' OBJECTID[o] '(' param_list[l] ')' { $$ = new Dispatch{$e, $o, $l}; @$ = @3;}
   | INT_CONST[i] { $$ = new IntConst{$i}; }
   | BOOL_CONST[b] { $$ = new BoolConst{$b}; }
   | OBJECTID[o] { $$ = new Object{$o}; } // TODO: this
@@ -161,18 +163,19 @@ stmt
   | PRINTLN '(' expr[e] ')' ';' { $$ = new Println{$e}; }
   | OBJECTID[o] '=' expr[e] ';' { $$ = new Assign{new Object{$o}, $e}; }
   | OBJECTID[o] '[' expr[e1] ']' '=' expr[e2] ';' { $$ = new ArrAssign{new Object{$o}, $e1, $e2}; }
+  | var_decl[v] { $$ = $v; }
   ;
 
 type_
   : OBJECTID[t] { $$ = $t; }
-  | OBJECTID[t] '[' ']' { $$ = $t + string("[]"); }
+  | OBJECTID[t] '[' ']' { $$ = $t + "[]"; }
 
 var_decl
   : type_[t] OBJECTID[o] ';' { $$ = new Var{Type($t), $o}; }
 
-var_decl_list
+attr_list
   : %empty { $$ = {}; }
-  | var_decl_list[vl] var_decl[v] { $$ = append($vl, $v); }
+  | attr_list[vl] var_decl[v] { $$ = append($vl, $v); }
 
 param_decl
   : type_[t] OBJECTID[o] { $$ = new Param{Type($t), $o}; }
@@ -187,16 +190,16 @@ param_decl_list
 
 method_decl
   : PUBLIC type_[t] OBJECTID[o] '(' param_decl_list[pl] ')' '{'
-      var_decl_list[vl]
+      // var_decl_list[vl]
       stmt_list[sl]
       RETURN expr[e] ';'
     '}'
-    { $$ = new Method($t, $o, $pl, $vl, $sl, $e); }
+    { $$ = new Method($t, $o, $pl, $sl, $e); }
   | PUBLIC type_[t] OBJECTID[o] '(' param_decl_list[pl] ')' '{'
-      var_decl_list[vl]
+      // var_decl_list[vl]
       RETURN expr[e] ';'
     '}'
-    { $$ = new Method($t, $o, $pl, $vl, {}, $e); }
+    { $$ = new Method($t, $o, $pl, {}, $e); }
 
 method_decl_list
   : %empty { $$ = {}; }
@@ -204,12 +207,12 @@ method_decl_list
 
 class_decl
   : CLASS OBJECTID[o] EXTENDS OBJECTID[oe] '{'
-      var_decl_list[vl]
+      attr_list[vl]
       method_decl_list[ml]
     '}'
     { $$ = new Class($o, $oe, $vl, $ml); }
   | CLASS OBJECTID[o] '{'
-      var_decl_list[vl]
+      attr_list[vl]
       method_decl_list[ml]
     '}'
     { $$ = new Class($o, "<object>", $vl, $ml); }
@@ -223,16 +226,18 @@ main_method
     stmt[s]
   '}'
   { $$ = new Method(string("void"), string("main"),
-                    $pl, {}, {}, nullptr); }
+                    $pl, {}, nullptr); }
 main_class
   : CLASS OBJECTID[o] '{'
+      attr_list[vl]
       main_method[m]
     '}'
-    { $$ = new Class(string("main"), "<object>", {}, single($m)); }
+    { $$ = new Class(string("main"), "<object>", $vl, single($m)); }
 
 %%
 
 void yy::parser::error(const location_type &l, const std::string &m) {
-    std::cerr << m << " at: " << l << std::endl;
+    complain(l) << m << std::endl;
+    // std::cerr << m << " at: " << l << std::endl;
     // throw yy::parser::syntax_error(l, m);
 }

@@ -33,7 +33,7 @@ struct Program;
 struct Class;
 struct Method;
 
-struct ParamDecl;
+// struct ParamDecl;
 struct Param;
 struct Var;
 
@@ -57,7 +57,8 @@ struct Visitor {
 
     V0(Program);
     V0(Class);
-    V0(ParamDecl);
+    V0(Param);
+    V0(Var);
     V0(Method);
     #undef V0
 };
@@ -72,6 +73,13 @@ struct Node {
 template<typename Tp>
 std::vector<Tp> append(std::vector<Tp> L, Tp v) {
     L.push_back(v);
+    return L;
+}
+
+template<typename Tp>
+std::vector<Tp> append(std::vector<Tp> L, std::vector<Tp> v) {
+    for (auto a: v)
+        L.push_back(a);
     return L;
 }
 template<typename Tp>

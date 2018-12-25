@@ -48,10 +48,11 @@ Type::Type(std::string name) {
 }
 
 bool Type::operator==(const Type& rhs) const {
+    if (!*this || !rhs) return true; // <error> is compatible with any type, to supress error.
     return *c == *rhs.c;
 }
 bool Type::operator!=(const Type& rhs) const {
-    return *c != *rhs.c;
+    return ! (*this == rhs);
 }
 
 bool Type::is_arithmetic() const {
@@ -59,6 +60,7 @@ bool Type::is_arithmetic() const {
 
 }
 bool Type::is_compatible(const Type& rhs) const {
+    if (!*this || !rhs) return true; // <error> is compatible with any type, to supress error.
     if (this->is_arithmetic()) {
         return rhs.is_arithmetic();
     }

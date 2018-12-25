@@ -22,6 +22,7 @@ struct TypeChecker: Visitor {
         expr->accept(this);
         if (!(expr->type == type)) {
             complain(expr->loc) << msg << std::endl; ;
+            parent->type = Type("<error>");
         }
     }
 
@@ -75,6 +76,7 @@ struct TypeChecker: Visitor {
             if (o->l->type != o->r->type && !(o->l->type.is_arithmetic() && o->r->type.is_arithmetic())) {
                 complain(o->loc) << "type not compatible around `" << char(o->op)
                                  << "`, lhs type: " << o->l->type << ", rhs type: " << o->r->type << std::endl;
+                o->type = Type("<error>");
             }
             // ret type as-is
         }
@@ -204,7 +206,7 @@ struct TypeChecker: Visitor {
         // SymTable<std::string, Method*> method_tab;
         if (!o->parent)
             complain(o->loc)
-                << " class `" << o->id << "` inherit from undefined type `" << o->parent << "`\n";
+                << "class `" << o->id << "` inherit from undefined type `" << o->parent << "`\n";
         for (ParamDecl *p: o->attrs) {
             p->accept(this);
         }
@@ -218,6 +220,7 @@ struct TypeChecker: Visitor {
         env.leave();
     }
     void visit(Method *m) {
+        // don't complain if checked. will be check twice if in the Base class;
         if (m->checked) return;
         m->checked = true;
         env.enter();
@@ -225,19 +228,19 @@ struct TypeChecker: Visitor {
         if (!m->type)
             complain(m->loc) << "method return type undefined\n";
 
-        for (ParamDecl *p: m->pl)
+        for (Param *p: m->pl)
             p->accept(this);
 
         env.enter();
-        for (ParamDecl *v: m->vl)
-            v->accept(this);
+        // for (Var *v: m->vl)
+        //     v->accept(this);
         for (Statement *s: m->sl)
             s->accept(this);
         env.leave();
 
         env.leave();
     }
-    void visit(ParamDecl *p) {
+    void check(ParamDecl *p) {
         // don't complain if checked. will be check twice if in the Base class;
         if (p->checked) return;
         p->checked = true;
@@ -246,6 +249,8 @@ struct TypeChecker: Visitor {
         if (env.insert(p->id, p->t) == -1)
             complain(p->loc) << "dulplicate definition of `" << p->id << "` in " << p->str << std::endl;
     }
+    void visit(Param *p) { check(p); }
+    void visit(Var *p) { check(p); }
 };
 
 }

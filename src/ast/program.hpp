@@ -44,6 +44,7 @@ struct ParamDecl: Node {
     : t(t), id(id), str(str) {}
     Type t;
     std::string id;
+    bool checked = false;
     const char *str;
     void accept(Visitor *v) { v->visit(this); }
 };
@@ -82,6 +83,8 @@ struct Method: Node {
     bool operator!=(Method& rhs) const {
         return !(*this == rhs);
     }
+
+    bool checked = false;
 };
 
 // typedef std::pair<Type, std::string> ParamDecl;

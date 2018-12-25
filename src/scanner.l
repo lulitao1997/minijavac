@@ -46,9 +46,6 @@ WHITESPACE [ \f\r\t\v]
 }
 <BLK_CMT>"/*" {}
 <BLK_CMT>"*/" { BEGIN(INITIAL); }
-<BLK_CMT><<EOF>> {
-    complain(cur_loc) << "EOF in comment\n";
-}
 <BLK_CMT>"\n" { yylloc->lines(); }
 <BLK_CMT>. {}
 

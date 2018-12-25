@@ -32,12 +32,12 @@ struct TypeChecker: Visitor {
         auto ptr = env.find(o->id);
         // std::cerr << " >>>>> find variable type: " << o->id << ", " << *ptr << std::endl;
         if (!ptr) {
-            complain(o->loc) << "variable undefined\n";
+            complain(o->loc) << "variable `" << o->id << "` undefined\n";
             return;
         }
         o->type = *ptr;
         if (!o->type)
-            complain(o->loc) << "type undefined\n";
+            complain(o->loc) << "type `" << o->type << "` undefined\n";
     }
 
     void visit(Uop *o) {
@@ -192,8 +192,13 @@ struct TypeChecker: Visitor {
             if (!c->inherited)
                 c->inherit();
         }
+
+        for (Class *c: o->cl) {
+            c->accept(this);
+        }
     }
     void visit(Class *o) {
+        // std::cerr << "checking: " << o->id << std::endl;
         env.enter();
 
         // SymTable<std::string, Method*> method_tab;
@@ -213,6 +218,8 @@ struct TypeChecker: Visitor {
         env.leave();
     }
     void visit(Method *m) {
+        if (m->checked) return;
+        m->checked = true;
         env.enter();
         // allow param shadowing attr, but we do not allow param have same id.
         if (!m->type)
@@ -231,8 +238,11 @@ struct TypeChecker: Visitor {
         env.leave();
     }
     void visit(ParamDecl *p) {
+        // don't complain if checked. will be check twice if in the Base class;
+        if (p->checked) return;
+        p->checked = true;
         if (!p->t)
-            complain(p->loc) << "type `" << p->t << "` undefined in" << p->str << std::endl;
+            complain(p->loc) << "type `" << p->t << "` undefined in " << p->str << std::endl;
         if (env.insert(p->id, p->t) == -1)
             complain(p->loc) << "dulplicate definition of `" << p->id << "` in " << p->str << std::endl;
     }

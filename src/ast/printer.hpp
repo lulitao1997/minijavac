@@ -105,6 +105,13 @@ struct Printer: public Visitor {
     }
 
     /////// class /////////
+    void visit(Program *s) {
+        out << idnt_str << "Program: " << std::endl;
+        depth++;
+        for (Class *c: s->cl)
+            c->accept(this);
+        depth--;
+    }
     void visit(Class *s) {
         out << idnt_str << "Class: " << s->id << " extends: " << s->parent << std::endl;
         depth++;

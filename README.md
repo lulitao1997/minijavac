@@ -1,5 +1,6 @@
 ext:
     check syclic depenence.
+    build inherent method
     pretty printer.
     string constant
     optional "else"

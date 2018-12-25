@@ -61,7 +61,7 @@ struct TypeChecker: Visitor {
                     complain(o->loc) << "object does not support .length method\n";
                 break;
             default:
-                std::cerr << " error op type:::: " << o->op << std::endl;
+                std::cerr << "!! error op type:::: " << o->op << std::endl;
                 assert(0);
         }
 
@@ -105,11 +105,11 @@ struct TypeChecker: Visitor {
                         eq = false;
                         break;
                     }
-                sig = m;
+                if (eq) sig = m;
             }
         if (!sig) {
             // complain(o->loc) << "method undefined\n";
-            complain(o->loc);
+            complain(o->loc) << "method `" << o->id << "` undefined\n";
             o->type = Type("<error>");
             return;
         }
@@ -117,7 +117,7 @@ struct TypeChecker: Visitor {
     }
     void visit(NewObj *o) {
         if (!o->type) {
-            complain(o->loc) << "type undefined in new statement\n";
+            complain(o->loc) << "type `" << o->type << "` undefined in new statement\n";
         }
     }
 
@@ -157,7 +157,7 @@ struct TypeChecker: Visitor {
         o->e->accept(this);
         o->idx->accept(this);
         if (!o->o->type.is_array()) {
-            complain(o->o->loc) << "object is not an array\n";
+            complain(o->o->loc) << "object `" << o->o->id << "` is not an array\n";
             return;
         }
         if (o->idx->type != Type("int")) {
@@ -165,22 +165,50 @@ struct TypeChecker: Visitor {
             return;
         }
         if (!o->o->type.array_body().is_compatible(o->e->type)) {
-            complain(o->o->loc) << "type not compatible\n";
+            complain(o->o->loc) << "type not compatible, lhs type: "
+                                << o->o->type.array_body() << ", rhs type: " << o->e->type << std::endl;
             return;
         }
     }
 
     ///////// Class ///////////
+    void visit(Program *o) {
+        std::unordered_set<std::string> cid;
+        bool has_circle = false;
+        for (Class *c: o->cl) {
+            Class *t = c;
+            while (c->parent != Type("<object>")) {
+                // std::cerr << " >>> " << c->id << "::" << c << ", " << c->get_parent() << ", " << c->parent << std::endl;
+                c = c->get_parent();
+                if (c == t) {
+                    complain(c->loc) << "circular dependency detected\n";
+                    return;
+                }
+            }
+        }
+        for (Class *c: o->cl) {
+            if (cid.count(c->id))
+                complain(c->loc) << "duplicate definition of `" << c->id << "`\n";
+            if (!c->inherited)
+                c->inherit();
+        }
+    }
     void visit(Class *o) {
         env.enter();
 
         // SymTable<std::string, Method*> method_tab;
-
+        if (!o->parent)
+            complain(o->loc)
+                << " class `" << o->id << "` inherit from undefined type `" << o->parent << "`\n";
         for (ParamDecl *p: o->attrs) {
             p->accept(this);
         }
         for (Method *m: o->methods) {
-            m->accept(this); //TODO: check dulplicate method name.
+            for (Method *j: o->methods) {
+                if (m != j && *m == *j)
+                    complain(m->loc) << "dulplicate method defination at " << j->loc << std::endl;
+            }
+            m->accept(this);
         }
         env.leave();
     }
@@ -198,10 +226,6 @@ struct TypeChecker: Visitor {
         env.enter();
         for (ParamDecl *v: m->vl) {
             v->accept(this);
-            // if (v->t == Type("<error>"))
-            //     complain(v->loc, "variable type undefined");
-            // if (env.insert(v->id, v->t) == -1)
-            //     complain(v->loc, "dulplicate variable decleration");
         }
 
         for (Statement *s: m->sl) {
@@ -214,9 +238,9 @@ struct TypeChecker: Visitor {
     }
     void visit(ParamDecl *p) {
         if (!p->t)
-            complain(p->loc) << "type undefined\n";
+            complain(p->loc) << "type `" << p->t << "` undefined in" << p->str << std::endl;
         if (env.insert(p->id, p->t) == -1)
-            complain(p->loc) << "dulplicate " << p->str << std::endl;
+            complain(p->loc) << "dulplicate definition of `" << p->id << "` in " << p->str << std::endl;
     }
 };
 

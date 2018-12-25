@@ -66,7 +66,7 @@
 // expressions
 %type <ast::Expression*> expr
 // %type <ast::Statement*> program
-%type<std::vector<ast::Class*>> program
+%type<ast::Program*> program
 %type <std::vector<ast::Expression*>> non_empty_param_list param_list
 %type <std::vector<ast::Statement*>> stmt_list // non_empty_stmt_list
 %type <ast::Statement*> stmt
@@ -114,7 +114,7 @@
 program
 //   : expr { res.result = $$ = $1; }
 //   : stmt { res.result = $$ = $1; }
-  : main_class[m] class_decl_list[cl] { res.result = $$ = append($cl, $m); }
+  : main_class[m] class_decl_list[cl] { res.result = $$ = new Program(append($cl, $m)); }
   ;
 
 non_empty_param_list
@@ -123,7 +123,7 @@ non_empty_param_list
   ;
 
 param_list
-  : %empty { $$ = vector<Expression*>{}; }
+  : %empty { $$ = {}; }
   | non_empty_param_list[el] { $$ = $el; }
   ;
 
@@ -154,7 +154,7 @@ stmt_list
 
 stmt
   : '{' stmt_list[sl] '}'  { $$ = new Block{$sl}; }
-  | '{' '}'  { $$ = new Block{vector<Statement*>{}}; }
+  | '{' '}'  { $$ = new Block{{}}; }
   | IF '(' expr[e] ')' stmt[s1] ELSE stmt[s2] { $$ = new If{$e, $s1, $s2}; }
   | WHILE '(' expr[e] ')' stmt[s] { $$ = new While{$e, $s}; }
   | PRINTLN '(' expr[e] ')' ';' { $$ = new Println{$e}; }
@@ -170,7 +170,7 @@ var_decl
   : type_[t] OBJECTID[o] ';' { $$ = new Var{Type($t), $o}; }
 
 var_decl_list
-  : %empty { $$ = vector<Var*>{}; }
+  : %empty { $$ = {}; }
   | var_decl_list[vl] var_decl[v] { $$ = append($vl, $v); }
 
 param_decl
@@ -181,7 +181,7 @@ non_empty_param_decl_list
   | non_empty_param_decl_list[pl] ',' param_decl[p] { $$ = append($pl, $p); }
 
 param_decl_list
-  : %empty { $$ = vector<Param*>{}; }
+  : %empty { $$ = {}; }
   | non_empty_param_decl_list[pl] { $$ = $pl; }
 
 method_decl
@@ -195,10 +195,10 @@ method_decl
       var_decl_list[vl]
       RETURN expr[e] ';'
     '}'
-    { $$ = new Method($t, $o, $pl, $vl, vector<Statement*>{}, $e); }
+    { $$ = new Method($t, $o, $pl, $vl, {}, $e); }
 
 method_decl_list
-  : %empty { $$ = vector<Method*>{}; }
+  : %empty { $$ = {}; }
   | method_decl_list[ml] method_decl[m] { $$ = append($ml, $m); }
 
 class_decl
@@ -214,7 +214,7 @@ class_decl
     { $$ = new Class($o, "<object>", $vl, $ml); }
 
 class_decl_list
-  : %empty { $$ = vector<Class*>{}; }
+  : %empty { $$ = {}; }
   | class_decl_list[cl] class_decl[c] { $$ = append($cl, $c); }
 
 main_method
@@ -222,13 +222,12 @@ main_method
     stmt[s]
   '}'
   { $$ = new Method(string("void"), string("main"),
-                    $pl, vector<Var*>{},
-                    vector<Statement*>{}, nullptr); }
+                    $pl, {}, {}, nullptr); }
 main_class
   : CLASS OBJECTID[o] '{'
       main_method[m]
     '}'
-    { $$ = new Class(string("main"), "<object>", vector<Var*>{}, single($m)); }
+    { $$ = new Class(string("main"), "<object>", {}, single($m)); }
 
 %%
 

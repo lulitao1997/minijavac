@@ -6,7 +6,7 @@
 struct ParserOutput {
     // ast::Expression *result;
     // ast::Statement *result;
-    std::vector<ast::Class*> result;
+    ast::Program *result;
 };
 
 #endif

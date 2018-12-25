@@ -29,6 +29,7 @@ struct Println;
 struct Assign;
 struct ArrAssign;
 
+struct Program;
 struct Class;
 struct Method;
 
@@ -54,6 +55,7 @@ struct Visitor {
     V0(Assign);
     V0(ArrAssign);
 
+    V0(Program);
     V0(Class);
     V0(ParamDecl);
     V0(Method);

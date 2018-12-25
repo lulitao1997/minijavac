@@ -12,6 +12,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 
 set(deps
     utils.cpp
+    ast/type.cpp
     ast/program.cpp
     ${FLEX_yy_scanner_OUTPUTS}
     ${BISON_yy_parser_OUTPUTS}

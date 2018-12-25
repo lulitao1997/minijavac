@@ -9,26 +9,26 @@
 
 using namespace std;
 
-int main() {
-    // string parser_input = "123.length + 456[2[0]] < 78 + !asdf.fun(1, 2, 3) * true\n";
-    // string parser_input = "if (true) System.out.println(123); else if (false) {a=123;} else {}\n";
-
-    cerr << yy::parser::token::OBJECTID << endl;
+int main(int argc, char *argv[]) {
+    if (argc > 2) {
+        cerr << "Usage: " << argv[0] << " file.java" << endl;
+        return -1;
+    }
 
     ParserOutput out;
-    // auto in = istringstream(parser_input);
-    auto in = fstream("test.java", ios::in);
-    yy::scanner s(&in);
+    auto *in = (argc == 1 ? &cin : new fstream(argv[1]));
+    yy::scanner s(in);
 
-    yy::parser p(s, out);
-    auto *pr = new ast::Printer(cout);
-    cerr << "Parse state: " << p.parse() << endl;
-    // out.result->accept(pr);
-    for (auto c: out.result) {
-        c->accept(pr);
-    }
-    auto *tc = new ast::TypeChecker;
-    for (auto c: out.result) {
-        c->accept(tc);
+    yy::parser parser(s, out);
+    int parse_ret = parser.parse();
+    if (parse_ret) cerr << "parse failed: " << parse_ret << endl;
+    else {
+        auto *printer = new ast::Printer(cout);
+        ast::Program *program = out.result;
+        program->accept(printer);
+        // for (auto c: out.result)
+        //     c->accept(printer);
+        auto *tchecker = new ast::TypeChecker;
+        program->accept(tchecker);
     }
 }

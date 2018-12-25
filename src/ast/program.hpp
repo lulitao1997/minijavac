@@ -22,9 +22,6 @@ struct Class: Node {
     : id(id), parent(parent), attrs(attrs), methods(methods)
     {
         (*Type::M)[id] = this;
-        using namespace std;
-        cerr << "constructing class -- " << Type::M << endl;
-        for (auto p: *Type::M) cerr << p.first << ", " << p.second << endl;
     }
 
     std::string id;

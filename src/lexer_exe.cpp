@@ -20,4 +20,6 @@ int main() {
         if (!tktype) break;
     }
     cerr << "end: " << tktype << endl;
+
+    for (auto s: lines) cout << s << endl;
 }

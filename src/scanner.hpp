@@ -4,6 +4,7 @@
 #undef yyFlexLexer //TODO: Why???
 #include <FlexLexer.h>
 #include "parser.hxx"
+#include "utils.hpp"
 
 #ifdef  YY_DECL
 # undef YY_DECL

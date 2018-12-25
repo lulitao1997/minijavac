@@ -1,9 +1,28 @@
 #include "utils.hpp"
+#include <sstream>
+using namespace std;
 
 int error_num;
+vector<string> lines;
 
-static const char *cbegin = "\033[1;31m", *cend = "\033[0m";
+static const char *reds = "\033[1;31m", *rede = "\033[0m";
+static vector<ostringstream> msgs;
+static vector<yy::location> locs;
 
 std::ostream &complain(yy::location loc) {
-    return std::cerr << loc << ", ";
+    // return std::cerr << loc << ", ";
+    locs.push_back(loc);
+    msgs.emplace_back();
+    return *msgs.rbegin();
+    // cerr << reds << "ERROR: " << rede << loc << ": " << endl << lines[loc.begin.line] << reds << string(' ', start) << rede << endl;
+}
+
+void output_error() {
+    int idx = 0;
+    for (const auto &s: locs) {
+        int start = s.begin.column, end = (s.begin.line == s.end.line ? s.end.column : lines[s.begin.line].size());
+        cerr << s << reds << " ERROR: "  << rede << msgs[idx++].str()
+             << lines[s.begin.line-1]
+             << reds << string(start-1, ' ') << string(end-start, '^') << rede << endl;
+    }
 }

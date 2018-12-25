@@ -13,13 +13,20 @@
 using tk = yy::parser::token; // less verbose
 
 // #define yyterminate() return( token::END )
+static std::string cur_line;
 
 /* update location when matching */
 #define YY_USER_ACTION \
     yylloc->step(); \
     yylloc->columns(yyleng); \
+    cur_line += yytext; \
 
 // TODO: check col and line number...
+static void ins_newline() {
+    lines.push_back(cur_line);
+    cur_line.clear();
+}
+
 %}
 
 VAR_CHARSET [a-zA-Z0-9_]
@@ -36,7 +43,10 @@ WHITESPACE [ \f\r\t\v]
 
 {WHITESPACE}+ {}
 
-\n { yylloc->lines(); }
+\n {
+    ins_newline();
+    yylloc->lines();
+}
 
 "/*" { BEGIN(BLK_CMT); }
 "*/" {
@@ -46,12 +56,16 @@ WHITESPACE [ \f\r\t\v]
 }
 <BLK_CMT>"/*" {}
 <BLK_CMT>"*/" { BEGIN(INITIAL); }
-<BLK_CMT>"\n" { yylloc->lines(); }
+<BLK_CMT>"\n" {
+    ins_newline();
+    yylloc->lines();
+}
 <BLK_CMT>. {}
 
 "//" { BEGIN(LINE_CMT); }
 <LINE_CMT>. {}
 <LINE_CMT>"\n" {
+    ins_newline();
     BEGIN(INITIAL);
     yylloc->lines();
 }
@@ -72,7 +86,11 @@ WHITESPACE [ \f\r\t\v]
 }
 
 "&&" { return tk::AND; }
+ /*
 "new int" { return tk::NEWINT; }
+ */
+"new" { return tk::NEW; }
+"["{WHITESPACE}*"]" { return tk::NEWARR; }
 "length" { return tk::LENGTH; }
 
 
@@ -84,8 +102,8 @@ WHITESPACE [ \f\r\t\v]
 "class" { return tk::CLASS; }
 "extends" { return tk::EXTENDS; }
 "public" { return tk::PUBLIC; }
+"public"{WHITESPACE}+"static" { return tk::PUBLIC_STATIC; }
 "return" { return tk::RETURN; }
-"static" { return tk::STATIC; }
 "void" { return tk::VOID; }
 "main" { return tk::MAIN; }
 

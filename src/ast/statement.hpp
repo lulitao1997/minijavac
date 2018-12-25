@@ -50,6 +50,12 @@ struct ArrAssign: public Statement {
     void accept(Visitor *v) { v->visit(this); }
 };
 
+struct Return: Statement {
+    Return(Expression *e): e(e) {}
+    Expression *e;
+    void accept(Visitor *v) { v->visit(this); }
+};
+
 }
 
 #endif

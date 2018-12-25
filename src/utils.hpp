@@ -3,9 +3,11 @@
 
 #include <location.hh>
 #include <string>
-#include <ostream>
+#include <vector>
 
 extern int error_num;
+extern std::vector<std::string> lines;
 std::ostream &complain(yy::location loc);
+void output_error();
 
 #endif

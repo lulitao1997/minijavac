@@ -10,7 +10,7 @@ std::string Type::remove_subscript(std::string s) const {
 Type::operator bool() const {
     if (!is_array())
         return *c;
-    return bool(Type(remove_subscript(*id)));
+    return bool(array_body());
 }
 Type Type::array_body() const {
     return Type(remove_subscript((*id)));
@@ -49,6 +49,8 @@ Type::Type(std::string name) {
 
 bool Type::operator==(const Type& rhs) const {
     if (!*this || !rhs) return true; // <error> is compatible with any type, to supress error.
+    if (is_array() ^ rhs.is_array()) return false;
+    if (is_array()) return array_body() == rhs.array_body();
     return *c == *rhs.c;
 }
 bool Type::operator!=(const Type& rhs) const {
@@ -61,6 +63,9 @@ bool Type::is_arithmetic() const {
 }
 bool Type::is_compatible(const Type& rhs) const {
     if (!*this || !rhs) return true; // <error> is compatible with any type, to supress error.
+    if (is_array() ^ rhs.is_array()) return false;
+    if (is_array()) return array_body().is_compatible(rhs.array_body());
+
     if (this->is_arithmetic()) {
         return rhs.is_arithmetic();
     }

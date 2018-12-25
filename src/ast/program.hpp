@@ -63,14 +63,13 @@ struct Var: ParamDecl, Statement {
 
 struct Method: Node {
     Method(std::string type, std::string id, std::vector<Param*> pl,
-           std::vector<Statement*> sl, Expression *ret)
-    : type(type), id(id), pl(pl), sl(sl), ret(ret) {}
+           std::vector<Statement*> sl)
+    : type(type), id(id), pl(pl), sl(sl) {}
     Type type;
     std::string id;
     std::vector<Param*> pl;
     // std::vector<Var*> vl;
     std::vector<Statement*> sl;
-    Expression *ret;
     void accept(Visitor *v) { v->visit(this); }
     bool operator==(Method& rhs) const {
         if (id != rhs.id || pl.size() != rhs.pl.size())

@@ -53,6 +53,12 @@ struct Printer: public Visitor {
     void visit(NewObj *o) {
         out << idnt_str << "NewObj: " << o->type << std::endl;
     }
+    void visit(NewArr *o) {
+        out << idnt_str << "NewArr " << o->type << std::endl;
+        depth++;
+        o->idx->accept(this);
+        depth--;
+    }
     void visit(Object *o) {
         out << idnt_str << "Object: " << o->id << std::endl;
     }
@@ -71,7 +77,7 @@ struct Printer: public Visitor {
         depth++;
         s->cond->accept(this);
         s->i->accept(this);
-        s->e->accept(this);
+        if (s->e) s->e->accept(this);
         depth--;
     }
     void visit(While *s) {
@@ -103,6 +109,12 @@ struct Printer: public Visitor {
         s->e->accept(this);
         depth--;
     }
+    void visit(Return *s) {
+        out << idnt_str << "Return: " << std::endl;
+        depth++;
+        s->e->accept(this);
+        depth--;
+    }
 
     /////// class /////////
     void visit(Program *s) {
@@ -126,7 +138,7 @@ struct Printer: public Visitor {
         out << idnt_str << "Method: " << s->id << " : " << s->type << std::endl;
         depth++;
         for (auto p: s->pl)
-            { out << idnt_str << "param: "; p->accept(this); }
+            p->accept(this);
         // for (auto p: s->vl)
         //     { out << idnt_str << "var_decl: "; p->accept(this); }
         for (auto p: s->sl)
@@ -135,10 +147,10 @@ struct Printer: public Visitor {
     }
 
     void visit(Var *p) {
-        out << "VarDecl: " << p->t << ", " << p->id << std::endl;
+        out << idnt_str << "VarDecl: " << p->t << ", " << p->id << std::endl;
     }
     void visit(Param *p) {
-        out << "Param: " << p->t << ", " << p->id << std::endl;
+        out << idnt_str << "Param: " << p->t << ", " << p->id << std::endl;
     }
 
     // void visit(Var *s) {

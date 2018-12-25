@@ -37,7 +37,7 @@ enum OpType {
     Mul = '*',
     Arr = '[',
     Len = 'L',
-    NewInt = 'N',
+    // NewInt = 'N',
     Not = '!',
     Bracket = '('
 };
@@ -66,8 +66,14 @@ struct Dispatch: public Expression {
 };
 
 struct NewObj: public Expression {
-    NewObj(Type type): type(type) {}
-    Type type;
+    NewObj(Type t) { type = t; }
+    // Type type;
+    void accept(Visitor *v) { v->visit(this); }
+};
+
+struct NewArr: public Expression {
+    NewArr(Type t, Expression *idx):idx(idx) { type = t; }
+    Expression *idx;
     void accept(Visitor *v) { v->visit(this); }
 };
 

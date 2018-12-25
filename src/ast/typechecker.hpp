@@ -43,13 +43,18 @@ struct TypeChecker: Visitor {
 
     void visit(Uop *o) {
         switch(o->op) {
-            case NewInt:
-                o->type = Type("int[]");
-                TASSERT(o->e, Type("int"), "size of array is not int.", o);
-                break;
+            // case NewInt:
+            //     o->type = Type("int[]");
+            //     TASSERT(o->e, Type("int"), "size of array is not int.", o);
+            //     break;
             case Not:
                 o->type = Type("boolean");
-                TASSERT(o->e, Type("boolean"), "expression after `!` must be bool or int", o);  // bool <= int
+                // TASSERT(o->e, Type("boolean"), "expression after `!` must be bool or int", o);  // bool <= int
+                o->e->accept(this);
+                if (!o->e->type.is_arithmetic()) {
+                    complain(o->loc) << "expression after `!` must be bool or int\n";
+                    o->type = Type("<error>");
+                }
                 break;
             case Bracket:
                 o->e->accept(this);
@@ -91,6 +96,7 @@ struct TypeChecker: Visitor {
     }
     void visit(Dispatch *o) {
         o->e->accept(this);
+        if (!o->e->type) return;
 
         bool error = false;
 
@@ -103,7 +109,7 @@ struct TypeChecker: Visitor {
                 bool eq = true;
                 int idx = 0;
                 for (ParamDecl *p: m->pl)
-                    if (p->t != o->param_list[idx++]->type) {
+                    if (!p->t.is_compatible(o->param_list[idx++]->type)) {
                         eq = false;
                         break;
                     }
@@ -111,7 +117,7 @@ struct TypeChecker: Visitor {
             }
         if (!sig) {
             // complain(o->loc) << "method undefined\n";
-            complain(o->loc) << "method `" << o->id << "` undefined\n";
+            complain(o->loc) << "method `" << o->id << "` undefined, caller type is `" << o->e->type << "`\n";
             o->type = Type("<error>");
             return;
         }
@@ -122,18 +128,28 @@ struct TypeChecker: Visitor {
             complain(o->loc) << "type `" << o->type << "` undefined in new statement\n";
         }
     }
+    void visit(NewArr *o) {
+        if (!o->type) {
+            complain(o->loc) << "type `" << o->type << "` undefined in new statement\n";
+        }
+        o->idx->accept(this);
+        if (o->idx->type != Type("int"))
+            complain(o->idx->loc) << "array subscript must be integer\n";
+    }
 
     ///////// statement /////////
     void visit(Block *o) {
+        env.enter();
         for (Statement *p: o->sl)
             p->accept(this);
+        env.leave();
     }
     void visit(If *o) {
         o->cond->accept(this);
         if (!o->cond->type.is_compatible(Type("boolean")))
             complain(o->cond->loc) << "condition of if is not compatible with boolean\n";
         o->i->accept(this);
-        o->e->accept(this);
+        if (o->e) o->e->accept(this);
     }
     void visit(While *o) {
         o->e->accept(this);
@@ -163,7 +179,7 @@ struct TypeChecker: Visitor {
             return;
         }
         if (o->idx->type != Type("int")) {
-            complain(o->o->loc) << "array subscript is not int\n";
+            complain(o->idx->loc) << "array subscript is not int\n";
             return;
         }
         if (!o->o->type.array_body().is_compatible(o->e->type)) {
@@ -171,6 +187,12 @@ struct TypeChecker: Visitor {
                                 << o->o->type.array_body() << ", rhs type: " << o->e->type << std::endl;
             return;
         }
+    }
+    void visit(Return *o) {
+        o->e->accept(this);
+        Type t = *env.find("<return>");
+        if (o->e->type != t)
+            complain(o->loc) << "return type `" << o->e->type << "` not compatible with `" << t << std::endl;
     }
 
     ///////// Class ///////////
@@ -202,12 +224,14 @@ struct TypeChecker: Visitor {
     void visit(Class *o) {
         // std::cerr << "checking: " << o->id << std::endl;
         env.enter();
+        // param and variable cannot be defined as `this`.
+        env.insert("this", Type(o->id));
 
         // SymTable<std::string, Method*> method_tab;
         if (!o->parent)
             complain(o->loc)
                 << "class `" << o->id << "` inherit from undefined type `" << o->parent << "`\n";
-        for (ParamDecl *p: o->attrs) {
+        for (Var *p: o->attrs) {
             p->accept(this);
         }
         for (Method *m: o->methods) {
@@ -225,15 +249,16 @@ struct TypeChecker: Visitor {
         m->checked = true;
         env.enter();
         // allow param shadowing attr, but we do not allow param have same id.
-        if (!m->type)
+        if (!m->type) {
             complain(m->loc) << "method return type undefined\n";
+            return;
+        }
 
         for (Param *p: m->pl)
             p->accept(this);
 
         env.enter();
-        // for (Var *v: m->vl)
-        //     v->accept(this);
+        env.insert("<return>", m->type);
         for (Statement *s: m->sl)
             s->accept(this);
         env.leave();

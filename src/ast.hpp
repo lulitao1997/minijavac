@@ -18,6 +18,7 @@ struct BoolConst;
 struct Object;
 struct Uop;
 struct NewObj;
+struct NewArr;
 struct Dispatch;
 struct Bop;
 
@@ -28,6 +29,7 @@ struct While;
 struct Println;
 struct Assign;
 struct ArrAssign;
+struct Return;
 
 struct Program;
 struct Class;
@@ -45,6 +47,7 @@ struct Visitor {
     V0(Object);
     V0(Uop);
     V0(NewObj);
+    V0(NewArr);
     V0(Dispatch);
     V0(Bop);
 
@@ -54,6 +57,7 @@ struct Visitor {
     V0(Println);
     V0(Assign);
     V0(ArrAssign);
+    V0(Return);
 
     V0(Program);
     V0(Class);

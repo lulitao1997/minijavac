@@ -25,14 +25,39 @@ using tk = yy::parser::token; // less verbose
 VAR_CHARSET [a-zA-Z0-9_]
 WHITESPACE [ \f\r\t\v]
 
+ /*
 %x STR_QUOTE
 %x STR_ERROR
+ */
+%x BLK_CMT
+%x LINE_CMT
 
 %%
 
 {WHITESPACE}+ {}
 
 \n { yylloc->lines(); }
+
+"/*" { BEGIN(BLK_CMT); }
+"*/" {
+    complain(cur_loc) << "unmatched *\\\n";
+    BEGIN(INITIAL);
+    return tk::ERROR;
+}
+<BLK_CMT>"/*" {}
+<BLK_CMT>"*/" { BEGIN(INITIAL); }
+<BLK_CMT><<EOF>> {
+    complain(cur_loc) << "EOF in comment\n";
+}
+<BLK_CMT>"\n" { yylloc->lines(); }
+<BLK_CMT>. {}
+
+"//" { BEGIN(LINE_CMT); }
+<LINE_CMT>. {}
+<LINE_CMT>"\n" {
+    BEGIN(INITIAL);
+    yylloc->lines();
+}
 
 [0-9]+ {
     yylval->emplace<int>(atoi(yytext));

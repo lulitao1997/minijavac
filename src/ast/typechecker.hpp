@@ -215,23 +215,17 @@ struct TypeChecker: Visitor {
     void visit(Method *m) {
         env.enter();
         // allow param shadowing attr, but we do not allow param have same id.
-
-        if (!m->type) {
+        if (!m->type)
             complain(m->loc) << "method return type undefined\n";
-        }
 
         for (ParamDecl *p: m->pl)
             p->accept(this);
 
         env.enter();
-        for (ParamDecl *v: m->vl) {
+        for (ParamDecl *v: m->vl)
             v->accept(this);
-        }
-
-        for (Statement *s: m->sl) {
+        for (Statement *s: m->sl)
             s->accept(this);
-        }
-
         env.leave();
 
         env.leave();

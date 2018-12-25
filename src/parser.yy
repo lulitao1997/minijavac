@@ -61,6 +61,7 @@
 }
 
 ///////// Definiton of Tokens /////////
+%token                  ERROR
 %token                  END     0   "end of file"
 
 // expressions

@@ -144,7 +144,8 @@ expr
   | expr[e1] '*' expr[e2] { $$ = new Bop{Mul, $e1, $e2}; @$ = @2;}
   | expr[e1] '[' expr[e2] ']' { $$ = new Bop{Arr, $e1, $e2}; @$ = @2;}
   | expr[e] '.' LENGTH {$$ = new Uop{Len, $e}; }
-  | expr[e] '.' OBJECTID[o] '(' param_list[l] ')' { $$ = new Dispatch{$e, $o, $l}; @$ = @o;}
+  | expr[e] '.' OBJECTID[o] '(' param_list[l] ')' { $$ = new Dispatch{$e, $o, $l}; @$ = @3;}
+  | OBJECTID[o] '(' param_list[l] ')' { $$ = new Dispatch{new Object{"this"}, $o, $l}; } // EXT: optional `this`
   | INT_CONST[i] { $$ = new IntConst{$i}; }
   | BOOL_CONST[b] { $$ = new BoolConst{$b}; }
   | OBJECTID[o] { $$ = new Object{$o}; } // TODO: this
@@ -221,13 +222,13 @@ class_decl
       method_decl_list[ml]
     '}'
     { $$ = new Class($o, $oe, $vl, $ml);
-      @$ = @o; }
+      @$ = @2; }
   | CLASS OBJECTID[o] '{'
       attr_list[vl]
       method_decl_list[ml]
     '}'
     { $$ = new Class($o, "<object>", $vl, $ml);
-      @$ = @o; }
+      @$ = @2; }
 
 class_decl_list
   : class_decl[c] { $$ = single($c); }

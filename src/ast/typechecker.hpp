@@ -241,13 +241,13 @@ struct TypeChecker: Visitor {
         //                     << o->methods[j]->loc << std::endl;
         //     }
         // }
-        // for (Method *m: o->methods) {
-        //     for (Method *j: o->methods) {
-        //         if (m != j && *m == *j)
-        //             complain(m->loc) << "dulplicate method defination at " << j->loc << std::endl;
-        //     }
-        //     m->accept(this);
-        // }
+        for (Method *m: o->methods) {
+            // for (Method *j: o->methods) {
+            //     if (m != j && *m == *j)
+            //         complain(m->loc) << "dulplicate method defination at " << j->loc << std::endl;
+            // }
+            m->accept(this);
+        }
         env.leave();
     }
     void visit(Method *m) {

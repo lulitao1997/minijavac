@@ -5,8 +5,6 @@
 
 ## 简介
 
-前端
-
 bison + flex
 
 • 正确的词法/语法分析，给出对应的文法文件: `parser.yy`,
@@ -39,6 +37,7 @@ bison + flex
         子scope可以定义同样的id，shadowing外部scope变量
     array for any type. array's type rules
         A[] arr;
+        int[][] arr;
     main class do not have be first.
     error supress
     check syclic depenence.

@@ -1,12 +1,11 @@
 ext:
-    all method are virtual function in java...
-    pretty printer.
     string constant
     for stmt
     std::move when building ast [x]
     maybe more system. function?
 
 done:
+    all method are virtual function in java...
     optional "else"
     var decl anywhere
     shadowing variable

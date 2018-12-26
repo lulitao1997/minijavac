@@ -166,7 +166,6 @@ stmt_list
 
 stmt
   : '{' stmt_list[sl] '}'  { $$ = new Block{$sl}; }
-  // | '{' '}'  { $$ = new Block{{}}; }
   | IF '(' expr[e] ')' stmt[s1] ELSE stmt[s2] { $$ = new If{$e, $s1, $s2}; }
   | IF '(' expr[e] ')' stmt[s1] { $$ = new If{$e, $s1, nullptr}; }
   | WHILE '(' expr[e] ')' stmt[s] { $$ = new While{$e, $s}; }
@@ -206,11 +205,12 @@ method_decl
       stmt_list[sl]
     '}'
     { $$ = new Method($t, $o, $pl, $sl); }
-  // | PUBLIC type_[t] OBJECTID[o] '(' param_decl_list[pl] ')' '{'
-  //     // var_decl_list[vl]
-  //     RETURN expr[e] ';'
-  //   '}'
-  //   { $$ = new Method($t, $o, $pl, {}, $e); }
+  | PUBLIC type_[t] OBJECTID[o] '(' param_decl_list[pl] ')' '{'
+      // var_decl_list[vl]
+      error
+      stmt_list[sl]
+    '}'
+    { $$ = new Method($t, $o, $pl, $sl); }
 
 method_decl_list
   : %empty { $$ = {}; }
@@ -229,6 +229,12 @@ class_decl
     '}'
     { $$ = new Class($o, "<object>", $vl, $ml);
       @$ = @2; }
+  | CLASS error
+      attr_list[vl]
+      method_decl_list[ml]
+    '}'
+    { $$ = new Class("<syntax_error>", "<object>", $vl, $ml); }
+  // { $$ = nullptr; }
 
 class_decl_list
   : class_decl[c] { $$ = single($c); }

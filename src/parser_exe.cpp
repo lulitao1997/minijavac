@@ -15,19 +15,15 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
-    cout << string(5, '^') << endl;
-
     ParserOutput out;
     auto *in = (argc == 1 ? &cin : new fstream(argv[1]));
     yy::scanner s(in);
 
     yy::parser parser(s, out);
-    int parse_ret = parser.parse();
-    if (parse_ret) cerr << "parse failed: " << parse_ret << endl;
-    else {
+    if (!parser.parse() && !error_num) {
         auto *printer = new ast::Printer(cout);
         ast::Program *program = out.result;
-        // program->accept(printer);
+        program->accept(printer);
         auto *tchecker = new ast::TypeChecker;
         program->accept(tchecker);
     }

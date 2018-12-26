@@ -16,7 +16,7 @@ Type Type::array_body() const {
     return Type(remove_subscript((*id)));
 }
 bool Type::is_array() const {
-    return *((*id).rbegin()) == ']';
+    return *((*id).rbegin()) == ']' && *((*id).rbegin()+1) == '[';
 }
 const std::vector<Method*>& Type::methods() {
     return (*c)->methods;
@@ -40,7 +40,7 @@ Type::Type(std::string name) {
     }
     auto p = M->insert({name, nullptr}).first;
     id = &p->first; c = &p->second;
-    if (*id->rbegin() == ']' && !c) {
+    if (is_array() && !c) {
         *c = new Class(*id, remove_subscript(*id), {}, {}); // get rid of []
         // TODO: add dispatch, for length maybe.
     }

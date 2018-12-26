@@ -69,17 +69,24 @@ struct Method: Node {
     std::vector<Statement*> sl;
     void accept(Visitor *v) { v->visit(this); }
     bool operator==(Method& rhs) const {
+        // std::cerr << "cmp:::" << id << ", " << rhs.id << std::endl;
         if (id != rhs.id || pl.size() != rhs.pl.size())
             return false;
-
+        // return true;
         int idx = 0;
-        for (Param *p: pl)
-            if (p->t != rhs.pl[idx++]->t)
+        for (Param *p: pl) {
+
+            // std::cerr << "typ: " << p->t << ", " << rhs.pl[idx]->t << std::endl;
+            if (p->t != rhs.pl[idx]->t) {
                 return false;
+            }
+            idx++;
+        }
+        // std::cerr << "same cmp:::" << id << ", " << rhs.id << std::endl;
         return true;
     }
     bool operator!=(Method& rhs) const {
-        return !(*this == rhs);
+        return !operator==(rhs);
     }
 
     bool checked = false;

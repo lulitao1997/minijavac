@@ -222,7 +222,7 @@ struct TypeChecker: Visitor {
         }
     }
     void visit(Class *o) {
-        // std::cerr << "checking: " << o->id << std::endl;
+        // std::cerr << "checking: " << o->id << ", " << o->methods.size() << ", " << o->methods[0] <<  std::endl;
         env.enter();
         // param and variable cannot be defined as `this`.
         env.insert("this", Type(o->id));
@@ -234,13 +234,20 @@ struct TypeChecker: Visitor {
         for (Var *p: o->attrs) {
             p->accept(this);
         }
-        for (Method *m: o->methods) {
-            for (Method *j: o->methods) {
-                if (m != j && *m == *j)
-                    complain(m->loc) << "dulplicate method defination at " << j->loc << std::endl;
-            }
-            m->accept(this);
-        }
+        // for (int i=0; i<o->methods.size(); i++) {
+        //     for (int j=0; j<i; j++) {
+        //         if (*o->methods[i] == *o->methods[j])
+        //             complain(o->methods[i]->loc) << "dulplicate method defination at " << o->methods.size() << ", "
+        //                     << o->methods[j]->loc << std::endl;
+        //     }
+        // }
+        // for (Method *m: o->methods) {
+        //     for (Method *j: o->methods) {
+        //         if (m != j && *m == *j)
+        //             complain(m->loc) << "dulplicate method defination at " << j->loc << std::endl;
+        //     }
+        //     m->accept(this);
+        // }
         env.leave();
     }
     void visit(Method *m) {

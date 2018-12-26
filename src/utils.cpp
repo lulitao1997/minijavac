@@ -11,6 +11,7 @@ static vector<yy::location> locs;
 
 std::ostream &complain(yy::location loc) {
     // return std::cerr << loc << ", ";
+    error_num++;
     locs.push_back(loc);
     msgs.emplace_back();
     return *msgs.rbegin();

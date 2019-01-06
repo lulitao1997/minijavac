@@ -62,6 +62,7 @@ struct Dispatch: public Expression {
     Expression *e;
     std::string id;
     std::vector<Expression*> param_list;
+    friend std::ostream& operator<<(std::ostream& out, Dispatch& rhs);
     void accept(Visitor *v) { v->visit(this); }
 };
 

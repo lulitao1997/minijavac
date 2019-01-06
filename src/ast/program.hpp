@@ -39,8 +39,8 @@ protected:
 
 struct ParamDecl: Node {
     ParamDecl(Type t, std::string id, const char *str)
-    : t(t), id(id), str(str) {}
-    Type t;
+    : type(t), id(id), str(str) {}
+    Type type;
     std::string id;
     bool checked = false;
     const char *str;
@@ -62,37 +62,20 @@ struct Method: Node {
     Method(std::string type, std::string id, std::vector<Param*> pl,
            std::vector<Statement*> sl)
     : type(type), id(id), pl(pl), sl(sl) {}
-    Type type;
+    Type type; // return type
     std::string id;
     std::vector<Param*> pl;
     // std::vector<Var*> vl;
     std::vector<Statement*> sl;
     void accept(Visitor *v) { v->visit(this); }
-    bool operator==(Method& rhs) const {
-        // std::cerr << "cmp:::" << id << ", " << rhs.id << std::endl;
-        if (id != rhs.id || pl.size() != rhs.pl.size())
-            return false;
-        // return true;
-        int idx = 0;
-        for (Param *p: pl) {
-
-            // std::cerr << "typ: " << p->t << ", " << rhs.pl[idx]->t << std::endl;
-            if (p->t != rhs.pl[idx]->t) {
-                return false;
-            }
-            idx++;
-        }
-        // std::cerr << "same cmp:::" << id << ", " << rhs.id << std::endl;
-        return true;
-    }
+    bool operator==(Method& rhs) const;
     bool operator!=(Method& rhs) const {
         return !operator==(rhs);
     }
-
+    friend std::ostream& operator<<(std::ostream& out, Method& rhs);
+    bool is_compatible(Dispatch *o) const;
     bool checked = false;
 };
-
-// typedef std::pair<Type, std::string> ParamDecl;
 
 }
 

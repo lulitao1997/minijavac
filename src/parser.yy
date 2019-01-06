@@ -48,13 +48,13 @@
     #define YYLLOC_DEFAULT(Cur, Rhs, N) \
     do { \
       if (N) {\
-        (Cur) = YYRHSLOC(Rhs, 1); \
+        (Cur).begin = YYRHSLOC(Rhs, 1).begin; \
+        (Cur).end = YYRHSLOC(Rhs, N).end; \
       } \
       else \
         (Cur) = YYRHSLOC(Rhs, 0); \
       cur_loc = (Cur); \
     } while(0)
-
 
     #ifdef  yylex
     # undef yylex
@@ -137,14 +137,14 @@ param_list
   ;
 
 expr
-  : expr[e1] AND expr[e2] { $$ = new Bop{Add, $e1, $e2}; @$ = @2; }
-  | expr[e1] '<' expr[e2] { $$ = new Bop{Le, $e1, $e2}; @$ = @2;}
-  | expr[e1] '+' expr[e2] { $$ = new Bop{Add, $e1, $e2}; @$ = @2;}
-  | expr[e1] '-' expr[e2] { $$ = new Bop{Minus, $e1, $e2}; @$ = @2;}
-  | expr[e1] '*' expr[e2] { $$ = new Bop{Mul, $e1, $e2}; @$ = @2;}
-  | expr[e1] '[' expr[e2] ']' { $$ = new Bop{Arr, $e1, $e2}; @$ = @2;}
+  : expr[e1] AND expr[e2] { $$ = new Bop{Add, $e1, $e2}; }
+  | expr[e1] '<' expr[e2] { $$ = new Bop{Le, $e1, $e2}; }
+  | expr[e1] '+' expr[e2] { $$ = new Bop{Add, $e1, $e2}; }
+  | expr[e1] '-' expr[e2] { $$ = new Bop{Minus, $e1, $e2}; }
+  | expr[e1] '*' expr[e2] { $$ = new Bop{Mul, $e1, $e2}; }
+  | expr[e1] '[' expr[e2] ']' { $$ = new Bop{Arr, $e1, $e2}; }
   | expr[e] '.' LENGTH {$$ = new Uop{Len, $e}; }
-  | expr[e] '.' OBJECTID[o] '(' param_list[l] ')' { $$ = new Dispatch{$e, $o, $l}; @$ = @3;}
+  | expr[e] '.' OBJECTID[o] '(' param_list[l] ')' { cur_loc = @$ = @o; $$ = new Dispatch{$e, $o, $l}; }
   | OBJECTID[o] '(' param_list[l] ')' { $$ = new Dispatch{new Object{"this"}, $o, $l}; } // EXT: optional `this`
   | INT_CONST[i] { $$ = new IntConst{$i}; }
   | BOOL_CONST[b] { $$ = new BoolConst{$b}; }
@@ -221,14 +221,14 @@ class_decl
       attr_list[vl]
       method_decl_list[ml]
     '}'
-    { $$ = new Class($o, $oe, $vl, $ml);
-      @$ = @2; }
+    { cur_loc = @$ = @o;
+      $$ = new Class($o, $oe, $vl, $ml); }
   | CLASS OBJECTID[o] '{'
       attr_list[vl]
       method_decl_list[ml]
     '}'
-    { $$ = new Class($o, "<object>", $vl, $ml);
-      @$ = @2; }
+    { cur_loc = @$ = @o;
+      $$ = new Class($o, "<object>", $vl, $ml); }
   | CLASS error
       attr_list[vl]
       method_decl_list[ml]
@@ -251,7 +251,7 @@ main_class
       // attr_list[vl]
       main_method[m]
     '}'
-    { $$ = new Class("main", "<object>", {}, single($m)); }
+    { $$ = new Class($o, "<object>", {}, single($m)); }
 
 %%
 

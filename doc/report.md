@@ -2,13 +2,47 @@
 
 卢力韬 15307130084
 
-
 ## 简介
 
-bison + flex
+`minijavac` 是 Minijava 的编译器前端。
+
+### Dependencies
+Bison 3.2
+Flex 2.6.4
+C++ 14
+CMake 3.13.1
+
+### 编译
+```bash
+mkdir build && cd build
+cmake ..
+make
+```
+
+### 运行
+
+*输出AST*
+```bash
+cd build/src
+./parser_exe ../../test/factorial.java | ../../utils/vi.py
+xdg-open ast.png
+```
+
+
+*检查程序错误*
+```bash
+./parser_exe ../../test/manyerror.java > /dev/null
+```
+
+`test/` 目录下有多种测试样例
+
+
+
+
+## 功能
 
 • 正确的词法/语法分析，给出对应的文法文件: `parser.yy`,
-• 输出正确的抽象语法树 3 分　`printer.hpp`
+• 输出正确的抽象语法树 见 `printer.hpp`
     • 错误处理功能 见 test/
         词法错误 test/syntaxerror.java
         语法错误 test/syntaxerror.java

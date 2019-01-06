@@ -8,13 +8,13 @@ class Foo {
     int [][] im2d;
     public int Excite(int[][] x) {
         im2d = new int[] [3];
-        im2d[1] = new int[5];
+        im2d= new int[5];
         int y;
         Bar z;
-        if (x < 1)
+        if (x[1][2] < 1)
             y = 1;
           else
-            y = x * (this.Excite(x-1));
+            y = x[1][3] * (this.Excite(x));
         return y;
     }
 }

@@ -43,10 +43,6 @@ struct TypeChecker: Visitor {
 
     void visit(Uop *o) {
         switch(o->op) {
-            // case NewInt:
-            //     o->type = Type("int[]");
-            //     TASSERT(o->e, Type("int"), "size of array is not int.", o);
-            //     break;
             case Not:
                 o->type = Type("boolean");
                 // TASSERT(o->e, Type("boolean"), "expression after `!` must be bool or int", o);  // bool <= int
@@ -67,8 +63,7 @@ struct TypeChecker: Visitor {
                     complain(o->loc) << "object does not support .length method\n";
                 break;
             default:
-                std::cerr << "!! error op type:::: " << o->op << std::endl;
-                assert(0);
+                assert(o->op && 0);
         }
 
     }
@@ -103,25 +98,20 @@ struct TypeChecker: Visitor {
         for (Expression *e: o->param_list)
             e->accept(this);
 
-        Method *sig = nullptr;
+        std::vector<Method*> match = {};
         for (Method *m: o->e->type.methods())
-            if (m->id == o->id && m->pl.size() == o->param_list.size()) {
-                bool eq = true;
-                int idx = 0;
-                for (ParamDecl *p: m->pl)
-                    if (!p->t.is_compatible(o->param_list[idx++]->type)) {
-                        eq = false;
-                        break;
-                    }
-                if (eq) sig = m;
-            }
-        if (!sig) {
-            // complain(o->loc) << "method undefined\n";
-            complain(o->loc) << "method `" << o->id << "` undefined, caller type is `" << o->e->type << "`\n";
-            o->type = Type("<error>");
+            if (m->is_compatible(o))
+                match.push_back(m);
+
+        if (match.empty()) {
+            complain(o->loc) << "cannot find method matching dispatch `" << *o << "`\n";
             return;
         }
-        o->type = sig->type;
+        if (match.size() > 1) {
+            auto &a = (complain(o->loc) << "ambiguous dispatch, candidates:\n");
+            for (auto m: match)
+                a << "\t" << m->loc << ": " << *m << "\n";
+        }
     }
     void visit(NewObj *o) {
         if (!o->type) {
@@ -166,8 +156,8 @@ struct TypeChecker: Visitor {
         o->o->accept(this);
         o->e->accept(this);
         if (!o->o->type.is_compatible(o->e->type)) {
-            complain(o->e->loc) << "type not compatible, lhs type: "
-                                << o->o->type << ", rhs type: " << o->e->type << std::endl;
+            complain(o->loc) << "type not compatible, lhs type: "
+                             << o->o->type << ", rhs type: " << o->e->type << std::endl;
         }
     }
     void visit(ArrAssign *o) {
@@ -263,9 +253,9 @@ struct TypeChecker: Visitor {
         // don't complain if checked. will be check twice if in the Base class;
         if (p->checked) return;
         p->checked = true;
-        if (!p->t)
-            complain(p->loc) << "type `" << p->t << "` undefined in " << p->str << std::endl;
-        if (env.insert(p->id, p->t) == -1)
+        if (!p->type)
+            complain(p->loc) << "type `" << p->type << "` undefined in " << p->str << std::endl;
+        if (env.insert(p->id, p->type) == -1)
             complain(p->loc) << "dulplicate definition of `" << p->id << "` in " << p->str << std::endl;
     }
     void visit(Param *p) { check(p); }

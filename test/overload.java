@@ -11,16 +11,28 @@ class Foo {
         if (x < 1)
             y = 1;
           else 
-            y = x * (this.Excite(x-1));
+            y = x * (this.Excite());
         return y;
     }
-    public int Excite(int y) {
-
+    public int Excite(int x, int y) {
     }
+
 }
 
 class Bar extends Foo {
+
+    public int Excite(int y) {
+
+    }
+
+
     public int Excite(int x) {
+        int a;
+        {
+            int a;
+
+            int a;
+        }
         return 0;
     }
 }
